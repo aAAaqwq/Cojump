@@ -60,11 +60,15 @@
 
 
 一键安装(建议在虚拟环境下):
-- 创建虚拟环境
+- 创建虚拟环境(已创建)
 ```
 python -m venv venv
 ```
-
+- 激活虚拟环境
+```
+venv\Scripts\activate
+```
+- 安装依赖
 ```
 pip install -r requirements.txt
 ```
