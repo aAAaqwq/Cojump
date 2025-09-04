@@ -80,8 +80,8 @@ class WiFiHardwareController:
         # 绑定窗口关闭事件
         self.root.protocol("WM_DELETE_WINDOW", self.on_close)
 
-        # 初始扫描IP
-        self.scan_network()
+        # 初始扫描IP (在单独线程中执行，避免阻塞UI)
+        threading.Thread(target=self.scan_network, daemon=True).start()
 
     def open_second_window(self):
         # 在需要时才导入第二个界面，避免循环导入
@@ -209,6 +209,7 @@ class WiFiHardwareController:
                         result = s.connect_ex((ip, port))
                         if result == 0:
                             # 获取设备名称
+                            # 获取设备名称 (在线程池中执行，避免阻塞)
                             name = self.get_hostname(ip)
                             return (ip, port, name)  # 返回IP、端口和设备名称
                 except Exception:
