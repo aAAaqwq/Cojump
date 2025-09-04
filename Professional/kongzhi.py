@@ -6,9 +6,9 @@ import time
 import matplotlib.pyplot as plt
 from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
 import numpy as np
+from concurrent.futures import ThreadPoolExecutor, as_completed
 
 # 设置matplotlib支持中文显示
-# 只保留系统中肯定存在的中文字体
 plt.rcParams["font.family"] = ["SimHei", "Microsoft YaHei", "Arial"]
 plt.rcParams['axes.unicode_minus'] = False  # 解决负号显示问题
 
@@ -33,10 +33,17 @@ class WiFiHardwareController:
         self.receive_thread = None
         self.running = True
 
+        # 存储局域网内的IP地址列表、对应端口和设备名称
+        self.device_list = []  # 格式: [(ip, port, name), ...]
+        self.ip_to_device = {}  # 格式: {ip: (port, name)}
+        self.scanning = False  # 标记是否正在扫描IP
+
         # EMG数据记录
         self.emg_data = []
         self.emg_time = []
         self.max_data_points = 100  # 最大数据点数量
+        self.last_emg_update = 0
+        self.emg_update_interval = 100  # 100ms更新一次UI
 
         # 创建主框架
         self.main_frame = ttk.Frame(root, padding="10")
@@ -73,37 +80,207 @@ class WiFiHardwareController:
         # 绑定窗口关闭事件
         self.root.protocol("WM_DELETE_WINDOW", self.on_close)
 
+        # 初始扫描IP
+        self.scan_network()
 
     def open_second_window(self):
         # 在需要时才导入第二个界面，避免循环导入
-        from caiji import NetworkDebugger
-        # 隐藏当前界面
-        self.main_frame.destroy()
-        # 创建并显示第二个界面
-        NetworkDebugger(self.root)
+        try:
+            from caiji import NetworkDebugger
+            # 隐藏当前界面
+            self.main_frame.destroy()
+            # 创建并显示第二个界面
+            NetworkDebugger(self.root)
+        except ImportError:
+            self.log("无法导入第二个界面模块")
+            messagebox.showerror("错误", "无法导入第二个界面模块")
 
     def create_connection_frame(self):
         frame = ttk.LabelFrame(self.control_panel, text="WiFi连接设置", padding="10")
         frame.pack(fill=tk.X, pady=5)
 
-        ttk.Label(frame, text="IP地址:").grid(row=0, column=0, padx=5, pady=5, sticky=tk.W)
-        self.ip_entry = ttk.Entry(frame, width=20)
-        self.ip_entry.grid(row=0, column=1, padx=5, pady=5)
-        self.ip_entry.insert(0, "192.168.43.1")  # 默认IP地址
+        ttk.Label(frame, text="设备:").grid(row=0, column=0, padx=5, pady=5, sticky=tk.W)
 
-        ttk.Label(frame, text="端口:").grid(row=0, column=2, padx=5, pady=5, sticky=tk.W)
+        # 设备下拉列表（显示IP和设备名）
+        self.device_var = tk.StringVar()
+        self.device_combobox = ttk.Combobox(frame, textvariable=self.device_var, width=30, state="readonly")
+        self.device_combobox.grid(row=0, column=1, padx=5, pady=5)
+        # 绑定设备选择事件，自动填充IP和端口
+        self.device_combobox.bind("<<ComboboxSelected>>", self.on_device_selected)
+
+        # 刷新设备列表按钮
+        self.refresh_ip_btn = ttk.Button(frame, text="刷新设备列表", command=self.scan_network)
+        self.refresh_ip_btn.grid(row=0, column=2, padx=5, pady=5)
+
+        # 取消扫描按钮
+        self.cancel_scan_btn = ttk.Button(frame, text="取消扫描", command=self.cancel_scan, state=tk.DISABLED)
+        self.cancel_scan_btn.grid(row=0, column=3, padx=5, pady=5)
+
+        ttk.Label(frame, text="IP地址:").grid(row=1, column=0, padx=5, pady=5, sticky=tk.W)
+        self.ip_entry = ttk.Entry(frame, width=18)
+        self.ip_entry.grid(row=1, column=1, padx=5, pady=5)
+
+        ttk.Label(frame, text="端口:").grid(row=1, column=2, padx=5, pady=5, sticky=tk.W)
         self.port_entry = ttk.Entry(frame, width=10)
-        self.port_entry.grid(row=0, column=3, padx=5, pady=5)
+        self.port_entry.grid(row=1, column=3, padx=5, pady=5)
         self.port_entry.insert(0, "80")  # 默认端口
 
         self.connect_btn = ttk.Button(frame, text="连接", command=self.connect)
-        self.connect_btn.grid(row=0, column=4, padx=5, pady=5)
+        self.connect_btn.grid(row=1, column=4, padx=5, pady=5)
 
         self.disconnect_btn = ttk.Button(frame, text="断开连接", command=self.disconnect, state=tk.DISABLED)
-        self.disconnect_btn.grid(row=0, column=5, padx=5, pady=5)
+        self.disconnect_btn.grid(row=1, column=5, padx=5, pady=5)
 
         self.connection_status = ttk.Label(frame, text="未连接", foreground="red")
-        self.connection_status.grid(row=0, column=6, padx=5, pady=5)
+        self.connection_status.grid(row=1, column=6, padx=5, pady=5)
+
+    def on_device_selected(self, event):
+        """当选择设备时自动填充对应的IP和端口"""
+        selected_text = self.device_var.get()
+        if not selected_text:
+            return
+
+        # 从显示文本中提取IP
+        ip = selected_text.split(" ")[0]
+        if ip in self.ip_to_device:
+            port, name = self.ip_to_device[ip]
+            # 自动填充对应的IP和端口
+            self.ip_entry.delete(0, tk.END)
+            self.ip_entry.insert(0, ip)
+            self.port_entry.delete(0, tk.END)
+            self.port_entry.insert(0, str(port))
+
+    def get_local_ip_prefix(self):
+        """获取本地IP前缀，用于扫描同网段设备"""
+        try:
+            # 创建一个临时socket连接来获取本地IP
+            s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+            s.connect(("8.8.8.8", 80))
+            local_ip = s.getsockname()[0]
+            s.close()
+
+            # 返回IP前缀（如192.168.1.）
+            return ".".join(local_ip.split(".")[:3]) + "."
+        except Exception as e:
+            self.log(f"获取本地IP错误: {str(e)}")
+            return "192.168.43."  # 默认前缀
+
+    def get_hostname(self, ip):
+        """获取IP地址对应的主机名"""
+        try:
+            hostname, _, _ = socket.gethostbyaddr(ip)
+            return hostname
+        except (socket.herror, socket.timeout):
+            # 如果无法解析主机名，返回默认名称
+            return "未知设备"
+
+    def scan_network(self):
+        """扫描局域网内的设备IP地址、对应开放端口和设备名称"""
+        if self.scanning:
+            return  # 防止重复扫描
+
+        self.scanning = True
+        self.refresh_ip_btn.config(state=tk.DISABLED)
+        self.cancel_scan_btn.config(state=tk.NORMAL)
+        self.log("开始扫描局域网设备...")
+        self.device_list = []
+        self.ip_to_device = {}  # 重置IP-设备映射
+
+        # 获取本地IP前缀
+        ip_prefix = self.get_local_ip_prefix()
+
+        # 扫描常用端口
+        ports_to_check = [80, 8080, 23, 22, 554, 443]  # 常用端口列表
+
+        # 显示扫描进度
+        self.progress_var = tk.StringVar(value="0/254")
+        self.progress_label = ttk.Label(self.control_panel, textvariable=self.progress_var)
+        self.progress_label.place(relx=0.5, rely=0.05, anchor="center")
+
+        def scan_single_ip(ip):
+            """扫描单个IP的端口，返回(ip, port, name)或None"""
+            if not self.scanning:  # 检查是否需要取消扫描
+                return None
+
+            for port in ports_to_check:
+                try:
+                    with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
+                        s.settimeout(0.05)
+                        result = s.connect_ex((ip, port))
+                        if result == 0:
+                            # 获取设备名称
+                            name = self.get_hostname(ip)
+                            return (ip, port, name)  # 返回IP、端口和设备名称
+                except Exception:
+                    continue
+            return None
+
+        # 启动线程池进行并行扫描
+        with ThreadPoolExecutor(max_workers=50) as executor:
+            futures = []
+            for i in range(1, 255):
+                ip = f"{ip_prefix}{i}"
+                futures.append(executor.submit(scan_single_ip, ip))
+
+            # 跟踪扫描进度
+            completed = 0
+            for future in as_completed(futures):
+                if not self.scanning:  # 如果已取消扫描，提前退出
+                    break
+
+                completed += 1
+                self.root.after(0, lambda c=completed: self.progress_var.set(f"{c}/254"))
+
+                result = future.result()
+                if result:
+                    ip, port, name = result
+                    if ip not in self.ip_to_device:  # 只记录第一个发现的端口
+                        self.device_list.append((ip, port, name))
+                        self.ip_to_device[ip] = (port, name)
+                        self.log(f"发现设备: {name} ({ip}:{port})")
+
+        # 清理进度显示
+        if hasattr(self, 'progress_label'):
+            self.root.after(0, self.progress_label.destroy)
+
+        # 按IP排序
+        self.device_list.sort(key=lambda x: x[0])
+
+        # 更新UI
+        self.root.after(0, self._update_device_combobox)
+
+        # 恢复按钮状态
+        self.scanning = False
+        self.refresh_ip_btn.config(state=tk.NORMAL)
+        self.cancel_scan_btn.config(state=tk.DISABLED)
+
+    def _update_device_combobox(self):
+        """更新设备下拉列表，显示IP和设备名称"""
+        # 格式化显示文本为 "IP (设备名称)"
+        display_values = [f"{ip} ({name})" for ip, port, name in self.device_list]
+        self.device_combobox['values'] = display_values
+
+        if self.device_list:
+            self.device_combobox.current(0)  # 选中第一个设备
+            # 自动填充第一个设备的IP和端口
+            first_ip, first_port, _ = self.device_list[0]
+            self.ip_entry.delete(0, tk.END)
+            self.ip_entry.insert(0, first_ip)
+            self.port_entry.delete(0, tk.END)
+            self.port_entry.insert(0, str(first_port))
+
+        self.log(f"扫描完成，发现{len(self.device_list)}个设备")
+
+    def cancel_scan(self):
+        """取消当前扫描"""
+        if self.scanning:
+            self.scanning = False
+            self.log("已取消扫描")
+            # 清理进度显示
+            if hasattr(self, 'progress_label'):
+                self.progress_label.destroy()
+            self.refresh_ip_btn.config(text="刷新设备列表", state=tk.NORMAL)
+            self.cancel_scan_btn.config(state=tk.DISABLED)
 
     def create_control_frame(self):
         frame = ttk.LabelFrame(self.control_panel, text="热身模式", padding="10")
@@ -306,7 +483,6 @@ class WiFiHardwareController:
         self.current_change = ttk.Label(change_switch_frame, text="当前模式: WiFi模式", foreground="blue")
         self.current_change.pack(side=tk.LEFT, padx=20)
 
-
     def create_emg_calibration_frame(self):
         frame = ttk.LabelFrame(self.control_panel, text="EMG校准", padding="10")
         frame.pack(fill=tk.X, pady=5)
@@ -379,8 +555,6 @@ class WiFiHardwareController:
                                             command=self.open_second_window)
         self.get_threshold_btn.pack(side=tk.LEFT, padx=5)
 
-
-
     def create_log_frame(self):
         frame = ttk.LabelFrame(self.control_panel, text="通信日志", padding="10")
         frame.pack(fill=tk.BOTH, expand=True, pady=5)
@@ -431,11 +605,15 @@ class WiFiHardwareController:
 
     def log(self, message):
         """在日志区域显示消息"""
-        self.log_text.config(state=tk.NORMAL)
-        timestamp = time.strftime("%H:%M:%S")
-        self.log_text.insert(tk.END, f"[{timestamp}] {message}\n")
-        self.log_text.see(tk.END)
-        self.log_text.config(state=tk.DISABLED)
+        try:
+            self.log_text.config(state=tk.NORMAL)
+            timestamp = time.strftime("%H:%M:%S")
+            self.log_text.insert(tk.END, f"[{timestamp}] {message}\n")
+            self.log_text.see(tk.END)
+            self.log_text.config(state=tk.DISABLED)
+        except tk.TclError:
+            # 组件已销毁时忽略
+            pass
 
     def clear_log(self):
         """清空日志区域"""
@@ -446,11 +624,11 @@ class WiFiHardwareController:
 
     def connect(self):
         """连接到WiFi设备"""
-        ip = self.ip_entry.get()
+        ip = self.ip_entry.get()  # 从输入框获取IP
         port = self.port_entry.get()
 
         if not ip or not port:
-            messagebox.showerror("错误", "请输入IP地址和端口")
+            messagebox.showerror("错误", "请选择设备或输入IP地址和端口")
             return
 
         try:
@@ -558,8 +736,11 @@ class WiFiHardwareController:
             self.emg_line.set_ydata(self.emg_data)
 
             # 更新阈值线
-            threshold = float(self.threshold_entry.get())
-            self.threshold_line.set_ydata([threshold])
+            try:
+                threshold = float(self.threshold_entry.get())
+                self.threshold_line.set_ydata([threshold])
+            except (ValueError, tk.TclError):
+                pass
 
             # 自动调整坐标轴范围
             self.emg_ax.relim()
@@ -569,7 +750,10 @@ class WiFiHardwareController:
 
         # 继续更新图表
         if self.plotting_active:
-            self.root.after(100, self.update_plot)
+            try:
+                self.root.after(100, self.update_plot)
+            except tk.TclError:
+                pass
 
     def receive_data(self):
         """接收设备发送的数据"""
@@ -598,7 +782,36 @@ class WiFiHardwareController:
 
     def process_received_data(self, data):
         """处理接收到的数据并更新UI"""
-        if data.startswith("EMG_MODE_ACTIVE"):
+        # 优先处理EMG实时数据
+        if data.startswith("EMG:"):
+            try:
+                # 解析格式: EMG:值,传感器状态
+                parts = data.split(":")[1].split(",")
+                emg_value = float(parts[0])
+                sensor_state = parts[1].strip()
+                sensor_color = "green" if sensor_state == "已连接" else "red"
+
+                # 控制UI更新频率，避免过于频繁
+                current_time = time.time()
+                if current_time - self.last_emg_update >= self.emg_update_interval / 1000:
+                    self.last_emg_update = current_time
+                    # 更新EMG值显示
+                    self.root.after(0, lambda: self.current_emg_value.config(text=f"{emg_value:.1f}"))
+                    # 更新传感器状态显示
+                    self.root.after(0, lambda: self.sensor_status.config(text=sensor_state, foreground=sensor_color))
+
+                # 添加到数据列表用于绘图
+                self.emg_data.append(emg_value)
+                self.emg_time.append(current_time)
+
+                # 保持数据点数量在限制范围内
+                if len(self.emg_data) > self.max_data_points:
+                    self.emg_data.pop(0)
+                    self.emg_time.pop(0)
+            except Exception as e:
+                self.log(f"解析EMG数据错误: {str(e)}")
+
+        elif data.startswith("EMG_MODE_ACTIVE"):
             self.root.after(0, lambda: self.current_change.config(text="当前模式: EMG模式"))
         elif data.startswith("WIFI_MODE_ACTIVE"):
             self.root.after(0, lambda: self.current_change.config(text="当前模式: WiFi模式"))
@@ -608,10 +821,19 @@ class WiFiHardwareController:
             self.root.after(0, lambda: self.calib_status.config(text="校准状态: 请用力收缩肌肉5秒"))
         elif data.startswith("RELAX,"):
             remaining = data.split(",")[1]
-            self.root.after(0, lambda: self.calib_status.config(text=f"校准状态: 放松阶段，剩余{remaining}秒"))
+            # 检查是否是最后一秒
+            if remaining == "0":
+                self.root.after(0, lambda: self.calib_status.config(text="校准状态: 放松阶段完成，请准备用力"))
+            else:
+                self.root.after(0, lambda: self.calib_status.config(text=f"校准状态: 放松阶段，剩余{remaining}秒"))
         elif data.startswith("CONTRACT,"):
             remaining = data.split(",")[1]
-            self.root.after(0, lambda: self.calib_status.config(text=f"校准状态: 用力阶段，剩余{remaining}秒"))
+            # 检查是否是最后一秒
+            if remaining == "1":
+                self.root.after(0, lambda: self.calib_status.config(text=f"校准状态: 用力阶段，剩余{remaining}秒"))
+                self.root.after(1000, lambda: self.calib_status.config(text="校准状态: 校准完成"))
+            else:
+                self.root.after(0, lambda: self.calib_status.config(text=f"校准状态: 用力阶段，剩余{remaining}秒"))
         elif data.startswith("Relax="):
             value = data.split("=")[1]
             self.root.after(0, lambda: self.relax_avg.config(text=value))
@@ -656,7 +878,7 @@ class WiFiHardwareController:
             self.root.after(0, lambda: self.time4_entry.delete(0, tk.END))
             self.root.after(0, lambda: self.time4_entry.insert(0, value))
         elif data.startswith("EMG值:"):
-            # 提取EMG值并更新图表
+            # 兼容原有的EMG值格式
             try:
                 emg_value_str = data.split(": ")[1].split(",")[0]
                 emg_value = float(emg_value_str)
