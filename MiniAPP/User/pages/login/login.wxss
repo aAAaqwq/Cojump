@@ -1,0 +1,280 @@
+/* pages/login/login.wxss */
+/* 基础容器 - 完美适配各种屏幕 */
+.login-container {
+    position: relative;
+    width: 100vw;
+    height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    overflow: hidden;
+    padding: 40rpx;
+    box-sizing: border-box;
+  }
+  
+  /* 背景装饰元素 */
+  .bg-blur {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+  }
+  
+  .bg-circle {
+    position: absolute;
+    border-radius: 50%;
+    background: rgba(255, 255, 255, 0.1);
+  }
+  
+  .bg-circle-1 {
+    width: 600rpx;
+    height: 600rpx;
+    top: -200rpx;
+    right: -200rpx;
+  }
+  
+  .bg-circle-2 {
+    width: 400rpx;
+    height: 400rpx;
+    bottom: -150rpx;
+    left: -150rpx;
+  }
+  
+  /* 主登录卡片 - 玻璃态效果 */
+  .login-card {
+    width: 100%;
+    max-width: 600rpx;
+    background: rgba(255, 255, 255, 0.95);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+    border-radius: 32rpx;
+    padding: 60rpx 50rpx;
+    box-shadow: 0 20rpx 60rpx rgba(0, 0, 0, 0.1);
+    border: 1rpx solid rgba(255, 255, 255, 0.2);
+    z-index: 10;
+  }
+  
+  /* Logo区域 */
+  .logo-section {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    margin-bottom: 80rpx;
+  }
+  
+  .logo {
+    margin-bottom: 30rpx;
+    border-radius: 28rpx; /* 添加圆角与卡片风格统一 */
+    box-shadow: 0 8rpx 20rpx rgba(0, 0, 0, 0.1); /* 添加轻微阴影增强层次感 */
+    object-fit: contain; /* 确保图片比例不变形 */
+    background: linear-gradient(145deg, rgba(255, 255, 255, 0.9), rgba(255, 255, 255, 0.7));
+    padding: 12rpx; /* 添加内边距让图片呼吸 */
+    border: 1rpx solid rgba(255, 255, 255, 0.3); /* 细微边框 */
+  }
+  
+  .company-name {
+    font-size: 48rpx;
+    font-weight: 700;
+    color: #2d3748;
+    margin-bottom: 16rpx;
+    letter-spacing: 1rpx;
+    text-shadow: 0 2rpx 4rpx rgba(0, 0, 0, 0.05); /* 添加文字阴影增强可读性 */
+  }
+  
+  .slogan {
+    font-size: 28rpx;
+    color: #718096;
+    text-align: center;
+  }
+  
+  /* 登录按钮区域 */
+  .login-btn-section {
+    margin-bottom: 50rpx;
+  }
+  
+  .wechat-login-btn {
+    width: 100%;
+    height: 96rpx;
+    border-radius: 48rpx;
+    border: none;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 32rpx;
+    font-weight: 500;
+    transition: all 0.3s ease;
+  }
+  
+  .wechat-login-btn.active {
+    background: #07C160;
+    color: #fff;
+    box-shadow: 0 8rpx 24rpx rgba(5, 179, 99, 0.3);
+  }
+  
+  .wechat-login-btn.disabled {
+    background: #e2e8f0;
+    color: #a0aec0;
+  }
+  
+  .wechat-icon {
+    width: 44rpx;
+    height: 44rpx;
+    margin-right: 16rpx;
+  }
+  
+  /* 协议同意区域 */
+  .agreement-section {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+  }
+  
+  .checkbox-container {
+    display: flex;
+    align-items: center;
+    margin-bottom: 12rpx;
+    padding: 8rpx;
+  }
+  
+  .custom-checkbox {
+    width: 36rpx;
+    height: 36rpx;
+    border-radius: 6rpx;
+    border: 2rpx solid #cbd5e0;
+    margin-right: 16rpx;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.2s ease;
+  }
+  
+  .custom-checkbox.checked {
+    background: #07C160;
+    border-color: #07C160;
+  }
+  
+  .checkmark {
+    color: white;
+    font-size: 24rpx;
+    font-weight: bold;
+  }
+  
+  .agreement-text {
+    font-size: 26rpx;
+    color: #4a5568;
+  }
+  
+  .agreement-links {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-wrap: wrap;
+  }
+  
+  .link {
+    font-size: 26rpx;
+    color: #3182ce;
+    padding: 8rpx 4rpx;
+  }
+  
+  .link-separator {
+    font-size: 26rpx;
+    color: #718096;
+    margin: 0 8rpx;
+  }
+  
+  /* 响应式适配 */
+  @media (max-width: 600rpx) {
+    .login-card {
+      padding: 50rpx 40rpx;
+    }
+    
+    .company-name {
+      font-size: 44rpx;
+    }
+    
+    .slogan {
+      font-size: 26rpx;
+    }
+  }
+
+  /* 授权弹窗 */
+.userInfo_tank_bg {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    opacity: 0.3;
+    background: #000;
+    z-index: 666;
+}
+
+.userInfo_tank {
+    position: fixed;
+    bottom: 0;
+    background-color: white;
+    width: 100%;
+    border-radius: 30rpx 30rpx 0 0;
+    padding: 30rpx;
+    box-sizing: border-box;
+    z-index: 999999;
+}
+
+.transfromjoin {
+    transition: all 0.3s;
+    margin-bottom: 0;
+}
+
+.transfromout {
+    transition: all 0.3s;
+    margin-bottom: -700rpx;
+}
+
+.avatar_url {
+    width: 80rpx;
+    height: 80rpx;
+    border-radius: 50%;
+}
+
+.tank_content {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-bottom: 1px solid #eee;
+    height: 100rpx;
+}
+
+.tank_content text {
+    color: #787376;
+}
+
+.tank_content input {
+    width: 80%;
+    text-align: right;
+}
+
+.tank_title {
+    border-bottom: 1px solid #eee;
+    padding-bottom: 30rpx;
+    font-weight: 700;
+}
+
+.confirm_button {
+    display: flex;
+    margin: 50rpx 0;
+    box-sizing: border-box;
+    align-items: center;
+    justify-content: center;
+}
+
+.confirm_button view {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    width: 50%;
+}

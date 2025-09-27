@@ -1,0 +1,10 @@
+.item {
+    background: green;
+    margin: 60rpx;
+    border-radius: 30rpx;
+    height: 150rpx;
+    line-height: 150rpx;
+    text-align: center;
+    color: white;
+    font-size: 40rpx;
+}

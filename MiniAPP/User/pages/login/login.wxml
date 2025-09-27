@@ -1,0 +1,69 @@
+<!-- pages/login/login.wxml -->
+<view class="login-container">
+  <!-- 背景装饰元素 -->
+  <view class="bg-blur"></view>
+  <view class="bg-circle bg-circle-1"></view>
+  <view class="bg-circle bg-circle-2"></view>
+  <!-- 主内容卡片 -->
+  <view class="login-card">
+    <!-- Logo区域 -->
+    <view class="logo-section">
+      <image class="logo" src="/images/cojump-logo.png" mode="aspectFit"></image>
+      <text class="company-name">Cojump</text>
+      <text class="slogan">欢迎回来，请登录以继续</text>
+    </view>
+    <!-- 登录按钮 -->
+    <view class="login-btn-section">
+      <button class="wechat-login-btn {{agreementChecked ? 'active' : 'disabled'}}" bindtap="handleLoginClick" lang="zh_CN">
+        <image class="wechat-icon" src="/images/wechat-icon.png"></image>
+        <text>微信一键登录</text>
+      </button>
+    </view>
+
+    <!-- 头像昵称基本信息弹框 -->
+    <view>
+      <view class="userInfo_tank_bg" bindtap="TankControl" wx:if="{{userInfo_tank}}"></view>
+      <view class="userInfo_tank {{userInfo_tank?'transfromjoin':'transfromout'}}">
+        <view class="tank_title">
+          <text>申请获取您的头像、昵称</text>
+        </view>
+        <view class="tank_content">
+          <text>头像：</text>
+          <button class="avatar_button" open-type="chooseAvatar" bind:chooseavatar="onChooseAvatar">
+            <image class="avatar_url" src="{{userInfo.avatarURL}}"></image>
+            <view class="pos_photo">
+              <text class="iconfont icon-paizhao"></text>
+            </view>
+          </button>
+        </view>
+        <view class="tank_content">
+          <text>昵称：</text>
+          <input form-type='submit' bindblur="getNickName" placeholder="请输入昵称" type="nickname" />
+        </view>
+        <view class="confirm_button">
+          <view>
+            <button bindtap="TankControl">拒绝</button>
+          </view>
+          <view>
+            <button bindtap="submit" type="primary">允许</button>
+          </view>
+        </view>
+      </view>
+    </view>
+
+    <!-- 协议同意区域 -->
+    <view class="agreement-section">
+      <view class="checkbox-container" bindtap="toggleAgreement">
+        <view class="custom-checkbox {{agreementChecked ? 'checked' : ''}}">
+          <text class="checkmark">✓</text>
+        </view>
+        <text class="agreement-text">我已阅读并同意</text>
+      </view>
+      <view class="agreement-links">
+        <text class="link" bindtap="navigateToAgreement" data-type="user">《用户协议》</text>
+        <text class="link-separator">和</text>
+        <text class="link" bindtap="navigateToAgreement" data-type="privacy">《隐私政策》</text>
+      </view>
+    </view>
+  </view>
+</view>
