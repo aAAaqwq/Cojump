@@ -1,0 +1,65 @@
+<view class="container">
+  <view class="title">阈值测量</view>
+
+  <view class="card" style="margin-top: 30rpx;">
+    <view class="card-header">测量控制</view>
+    <view class="card-content">
+      <button 
+        class="btn primary" 
+        bindtap="startMeasurement" 
+        disabled="{{isMeasuring}}"
+        >
+        {{isMeasuring ? '测量中...' : '开始测量'}}
+      </button>
+    </view>
+  </view>
+
+  <view class="progress-container">
+    <view class="progress-header">测量进度</view>
+    
+    <view class="step" wx:if="{{currentStep === 1}}">
+      <text class="step-title">步骤 1/2: 放松测量</text>
+      <text>请保持手部完全放松状态</text>
+      <view class="progress-bar">
+        <view class="progress-fill" style="width: {{(10 - relaxTime) * 10}}"></view>
+      </view>
+      <text class="timer">剩余时间: {{relaxTime}}秒</text>
+    </view>
+    
+    <view class="step" wx:if="{{currentStep === 2}}">
+      <text class="step-title">步骤 2/2: 收缩测量</text>
+      <text>请用力收缩手部肌肉</text>
+      <view class="progress-bar">
+        <view class="progress-fill" style="width: {{(5 - contractTime) * 20}}"></view>
+      </view>
+      <text class="timer">剩余时间: {{contractTime}}秒</text>
+    </view>
+    
+    <view class="step" wx:if="{{currentStep === 3}}">
+      <text class="step-title">测量完成</text>
+      <text>请查看下方测量结果</text>
+      <image src="/images/success.png" class="success-icon"></image>
+    </view>
+  </view>
+  
+  
+
+  <view class="result-card"style="height: 308rpx; display: block; box-sizing: border-box;position: absolute;top: 500rpx" style="width: 643rpx; display: block; box-sizing: border-box; left: 150rpx; top: 500rpx">
+    <view class="result-header">测量结果</view>
+    <view class="result-content">
+      <view class="result-item">
+        <text>放松阈值:</text>
+        <text class="value">{{relaxAvg}}</text>
+      </view>
+      <view class="result-item">
+        <text>用力阈值:</text>
+        <text class="value">{{contractAvg}}</text>
+      </view>
+      <view class="result-item">
+        <text>推荐阈值:</text>
+        <text class="value">{{recommendAvg}}</text>
+      </view>
+      <button class="btn primary" bindtap="applyRecommendedThreshold">应用推荐阈值</button>
+    </view>
+  </view>
+</view>

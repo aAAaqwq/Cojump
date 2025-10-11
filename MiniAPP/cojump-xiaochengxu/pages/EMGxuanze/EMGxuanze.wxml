@@ -1,0 +1,39 @@
+<view class="container">
+  <view class="header">
+    <image src="/images/logo.png" class="logo"></image>
+    <text class="title">肌电康复训练系统</text>
+  </view>
+  
+  
+  
+  <view class="card">
+    <view class="card-header">功能选择</view>
+    <view class="card-content">
+      <button type="primary"
+        class="btn" 
+        bindtap="navigateToCeliang"
+        
+      >
+        阈值测量
+      </button>
+      <button type="primary"
+        class="btn" 
+        bindtap="navigateToTrain"
+        
+      >
+        主动训练
+      </button>
+    </view>
+  </view>
+  
+  <view class="instructions">
+    <text>使用说明:</text>
+    <view class="step">1. 确保设备已开机并处于可发现状态</view>
+    <view class="step">2. 点击"连接设备"按钮</view>
+    <view class="step">3. 选择所需功能开始训练</view>
+  </view>
+  
+  <view class="footer">
+    <text>©2025 肌电康复训练系统</text>
+  </view>
+</view>

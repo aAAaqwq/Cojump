@@ -10,7 +10,7 @@ Page({
       avatarURL: '',
     },
   },
-  async onLoad() {
+  async onShow() {
     try {
       await this.getOpenID()
     } catch (error) {
@@ -67,7 +67,6 @@ Page({
       console.log("缓存中获取到用户信息",userInfo)
       return
     }
-    console.log("获取用户信息的openid",app.globalData.openid)
     wx.cloud.callFunction({
       name: 'getUserInfo',
       data: {
@@ -166,9 +165,16 @@ Page({
       console.error("上传头像失败", error);
     }
     // 登录
-    this.wxLogin()
+    try {
+      await this.wxLogin()
+    } catch (error) {
+      console.error("登录失败", error);
+    }
+    // 更新缓存
+    wx.setStorageSync('userInfo', this.data.userInfo)
 
   },
+  //上传头像
   uploadAvatarFile() {
     return new Promise((resolve, reject) => {
       //上传临时头像图片到云存储
@@ -251,6 +257,29 @@ Page({
     })
     wx.navigateTo({
       url: '/pages/control-panel/control',
+    })
+  },
+
+  // 更新用户信息
+  updateUserInfo: function (userInfo) {
+    return new Promise((resolve, reject) => {
+      // 更新缓存
+      wx.setStorageSync('userInfo', userInfo);
+      // 更新数据库
+      wx.cloud.callFunction({
+        name: 'updateUserInfo',
+        data: userInfo,
+        success: (res) => {
+          if (res.result.success) {
+            resolve(res.result);
+          } else {
+            reject(new Error(res.result.message));
+          }
+        },
+        fail: (err) => {
+          reject(err);
+        }
+      })
     })
   },
 });

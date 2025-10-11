@@ -1,0 +1,19 @@
+<!--index.wxml-->
+<view class="container">
+  <image src="/image/KANG_YU.png" mode="widthFix" style="width: 300px; height: auto;"></image>
+  <view style="height: 30px;"></view>
+  <button type="primary" bindtap="BLE" style="width: 495rpx; display: block; box-sizing: border-box; left: 0rpx; top: 0rpx">连接蓝牙（Connect Bluetooth）</button>
+  <view style="height: 20px;"></view>
+  <button type="primary" bindtap="ToPage1" style="width: 495rpx; display: block; box-sizing: border-box; left: 0rpx; top: 0rpx">肌力训练模式（Strength training mode）</button>
+  <view style="height: 20px;"></view>
+  <button type="primary" bindtap="ToPage2" style="width: 495rpx; display: block; box-sizing: border-box; left: 0rpx; top: 0rpx">热身模式（Warm up mode）</button>
+  <view style="height: 30px;"></view>
+  <button type="primary" bindtap="Tobaidu" style="width: 495rpx; display: block; box-sizing: border-box; left: 0rpx; top: 0rpx">语音识别</button>
+  <view style="height: 30px;"></view>
+  <button type="primary" bindtap="ToPage4" style="width: 495rpx; display: block; box-sizing: border-box; left: 0rpx; top: 0rpx">EMG训练</button>
+  <view style="height: 30px;"></view>
+  <button type="primary" bindtap="ToPage3" style="width: 495rpx; display: block; box-sizing: border-box; left: 0rpx; top: 0rpx">EMG图像</button>
+  <view style="height: 30px;"></view>
+</view>
+
+ 

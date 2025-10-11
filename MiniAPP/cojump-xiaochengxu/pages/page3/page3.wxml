@@ -1,0 +1,4 @@
+<!--pages/page3/page3.wxml-->
+<view class="container">
+  <ec-canvas id="chartCanvas" canvas-id="mychart-line" ec="{{ ec }}"></ec-canvas>
+</view>

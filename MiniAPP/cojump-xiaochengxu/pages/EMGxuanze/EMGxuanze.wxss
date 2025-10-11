@@ -1,0 +1,260 @@
+/* pages/EMGxuanze/EMGxuanze.wxss */
+/* 基础样式 */
+.container {
+  padding: 20rpx;
+  background: linear-gradient(135deg, #f0f7ff 0%, #e6f2ff 100%);
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
+/* 头部样式 */
+.header {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 40rpx 0;
+}
+
+.logo {
+  width: 80rpx;
+  height: 80rpx;
+  margin-right: 20rpx;
+}
+
+.title {
+  font-size: 42rpx;
+  font-weight: bold;
+  color: #2c7be5;
+  text-shadow: 0 2rpx 4rpx rgba(0,0,0,0.1);
+}
+
+/* 卡片样式 */
+.card {
+  background: white;
+  border-radius: 24rpx;
+  box-shadow: 0 8rpx 30rpx rgba(0, 0, 0, 0.08);
+  padding: 30rpx;
+  margin-bottom: 30rpx;
+}
+
+.status-card {
+  border-left: 8rpx solid #2c7be5;
+}
+
+.status-header {
+  display: flex;
+  align-items: center;
+  margin-bottom: 25rpx;
+}
+
+.bluetooth-icon {
+  width: 50rpx;
+  height: 50rpx;
+  margin-right: 15rpx;
+}
+
+.subtitle {
+  font-size: 36rpx;
+  font-weight: 600;
+  color: #2a3f5f;
+}
+
+/* 状态指示器 */
+.status-content {
+  display: flex;
+  align-items: center;
+  margin-bottom: 30rpx;
+}
+
+.status-indicator {
+  width: 24rpx;
+  height: 24rpx;
+  border-radius: 50%;
+  margin-right: 15rpx;
+  position: relative;
+}
+
+.status-indicator.connected {
+  background-color: #00c853;
+  box-shadow: 0 0 10rpx rgba(0, 200, 83, 0.5);
+}
+
+.status-indicator.disconnected {
+  background-color: #ff3d00;
+}
+
+.pulse-animation {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  border-radius: 50%;
+  background: #2c7be5;
+  animation: pulse 1.5s infinite;
+  opacity: 0.7;
+}
+
+@keyframes pulse {
+  0% {
+    transform: scale(1);
+    opacity: 0.7;
+  }
+  70% {
+    transform: scale(3);
+    opacity: 0;
+  }
+  100% {
+    transform: scale(1);
+    opacity: 0;
+  }
+}
+
+.status-text {
+  font-size: 32rpx;
+  color: #2a3f5f;
+  font-weight: 500;
+}
+
+/* 按钮样式 */
+.action-buttons {
+  display: flex;
+  gap: 20rpx;
+  flex-wrap: wrap;
+}
+
+.btn {
+  flex: 1;
+  min-width: 300rpx;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: white;
+  border-radius: 50rpx;
+  padding: 20rpx;
+  font-size: 30rpx;
+  font-weight: 500;
+  transition: all 0.3s;
+  border: none;
+}
+
+.btn:active {
+  opacity: 0.85;
+  transform: scale(0.98);
+}
+
+.connect-btn {
+  background: #2c7be5;
+}
+
+.disconnect-btn {
+  background: #ff3d00;
+}
+
+.btn-icon {
+  width: 40rpx;
+  height: 40rpx;
+  margin-right: 12rpx;
+}
+
+/* 设备信息 */
+.device-info {
+  margin-top: 20rpx;
+  padding-top: 20rpx;
+  border-top: 1rpx solid #eee;
+}
+
+.info-item {
+  display: block;
+  font-size: 28rpx;
+  color: #6c757d;
+  margin-bottom: 10rpx;
+}
+
+/* 功能卡片 */
+.function-card {
+  background: linear-gradient(135deg, #2c7be5 0%, #1a56db 100%);
+  color: white;
+}
+
+.function-buttons {
+  display: flex;
+  justify-content: space-around;
+  margin-top: 20rpx;
+}
+
+.func-btn {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 25rpx;
+  border-radius: 20rpx;
+  background: rgba(255, 255, 255, 0.15);
+  transition: all 0.3s;
+  width: 45%;
+}
+
+.func-btn:active {
+  background: rgba(255, 255, 255, 0.25);
+  transform: scale(0.95);
+}
+
+.func-icon {
+  width: 80rpx;
+  height: 80rpx;
+  margin-bottom: 15rpx;
+  filter: invert(1);
+}
+
+.btn-hover {
+  opacity: 0.8;
+  transform: scale(0.98);
+}
+
+/* 历史记录 */
+.history-card {
+  background: #f8f9fa;
+}
+
+.history-list {
+  margin-top: 15rpx;
+}
+
+.history-item {
+  padding: 20rpx;
+  border-bottom: 1rpx solid #eee;
+  display: flex;
+  align-items: center;
+  transition: all 0.3s;
+}
+
+.history-item:active {
+  background-color: #f0f7ff;
+}
+
+.history-icon {
+  width: 40rpx;
+  height: 40rpx;
+  margin-right: 15rpx;
+}
+
+.history-name {
+  font-size: 30rpx;
+  color: #2a3f5f;
+  flex: 1;
+}
+
+.history-time {
+  font-size: 26rpx;
+  color: #6c757d;
+}
+
+/* 底部信息 */
+.footer {
+  text-align: center;
+  margin-top: auto;
+  padding: 30rpx 0;
+  color: #7b8ab8;
+  font-size: 26rpx;
+}

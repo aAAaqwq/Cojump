@@ -1,0 +1,32 @@
+/**index.wxss**/
+.input-container {
+  margin-bottom: 20px;
+}
+.duration{
+  color: rgb(129, 129, 129);
+}
+.countdown {
+  font-size: 30px;
+  color: rgb(0, 89, 255);
+}
+.container {
+  position: relative; /* 相对定位，确保子元素可以绝对定位 */
+}
+
+.top-image {
+  width: 300px; /* 或者指定一个宽度，例如 300px */
+  height: auto; /* 保持图片比例 */
+  position: fixed; /* 固定定位 */
+  top: 20px; /* 固定在顶部 */
+  left: 50%; /* 向左移动50%，然后使用 margin-left 调整到中心 */
+  transform: translateX(-50%); /* 使用 transform 属性向左移动自身宽度的50%来居中 */
+  z-index: 1000; /* 确保图片在页面其他内容上方 */
+}
+
+.input-box {
+  border: 2px solid #333; /* 添加一个明显的外框 */
+  padding: 10px; /* 添加内边距，让内容与边框之间有一定空间 */
+  margin: 10px; /* 外边距，使输入框与其他元素之间有一定空间 */
+  border-radius: 5px; /* 设置边框的圆角半径 */
+  background-color: #ffffff; /* 设置背景颜色，使其更显眼 */
+}

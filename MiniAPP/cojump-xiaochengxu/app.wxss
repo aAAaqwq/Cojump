@@ -1,0 +1,198 @@
+/**app.wxss**/
+.container {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: 0;
+  right: 0;
+
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: space-between;
+  padding: 200rpx 0;
+  box-sizing: border-box;
+  position: absolute;
+
+  
+} 
+
+
+
+
+.header {
+  display: flex;
+  align-items: center;
+  padding: 30rpx 0;
+  border-bottom: 1rpx solid #eaeaea;
+}
+
+.logo {
+  width: 80rpx;
+  height: 80rpx;
+  margin-right: 20rpx;
+}
+
+.title {
+  font-size: 36rpx;
+  font-weight: bold;
+  color: #2c3e50;
+}
+
+.card {
+  background: white;
+  border-radius: 16rpx;
+  box-shadow: 0 4rpx 12rpx rgba(0,0,0,0.05);
+  margin-bottom: 30rpx;
+  overflow: hidden;
+}
+
+.card-header {
+  background-color: #4a90e2;
+  color: white;
+  padding: 20rpx 30rpx;
+  font-size: 32rpx;
+  font-weight: bold;
+}
+
+.card-content {
+  padding: 30rpx;
+}
+
+.btn {
+  margin: 15rpx 0;
+  border-radius: 50rpx;
+  font-size: 32rpx;
+  padding: 20rpx 40rpx;
+  transition: all 0.3s;
+}
+
+.btn.primary {
+  background-color: #4a90e2;
+  color: white;
+}
+
+.btn.success {
+  background-color: #27ae60;
+  color: white;
+}
+
+.btn.danger {
+  background-color: #e74c3c;
+  color: white;
+}
+
+.input {
+  border: 1rpx solid #ddd;
+  border-radius: 8rpx;
+  padding: 20rpx;
+  margin-bottom: 20rpx;
+  font-size: 32rpx;
+}
+
+.progress-container, .result-card, .status-card {
+  background: white;
+  border-radius: 16rpx;
+  box-shadow: 0 4rpx 12rpx rgba(0,0,0,0.05);
+  margin-bottom: 30rpx;
+  padding: 30rpx;
+}
+
+.step {
+  padding: 20rpx 0;
+}
+
+.step-title {
+  font-size: 34rpx;
+  font-weight: bold;
+  color: #2c3e50;
+  margin-bottom: 15rpx;
+  display: block;
+}
+
+.timer {
+  font-size: 36rpx;
+  font-weight: bold;
+  color: #e74c3c;
+  margin-top: 15rpx;
+  display: block;
+}
+
+.progress-bar {
+  height: 30rpx;
+  background-color: #ecf0f1;
+  border-radius: 15rpx;
+  margin: 20rpx 0;
+  overflow: hidden;
+}
+
+.progress-fill {
+  height: 100%;
+  background-color: #27ae60;
+  border-radius: 15rpx;
+  transition: width 1s;
+}
+
+.result-item {
+  display: flex;
+  justify-content: space-between;
+  padding: 20rpx 0;
+  border-bottom: 1rpx solid #eee;
+}
+
+.value {
+  font-weight: bold;
+  color: #e74c3c;
+  font-size: 36rpx;
+}
+
+.graph-container {
+  position: relative;
+  height: 300rpx;
+  margin-top: 30rpx;
+}
+
+.graph {
+  display: flex;
+  align-items: flex-end;
+  height: 100%;
+  border-bottom: 2rpx solid #7f8c8d;
+  padding: 0 10rpx;
+}
+
+.signal-bar {
+  flex: 1;
+  margin: 0 2rpx;
+  background-color: #4a90e2;
+  border-radius: 4rpx 4rpx 0 0;
+}
+
+.threshold-line {
+  position: absolute;
+  left: 0;
+  right: 0;
+  height: 2rpx;
+  background-color: #e74c3c;
+}
+
+.threshold-label {
+  position: absolute;
+  right: 0;
+  background-color: #e74c3c;
+  color: white;
+  padding: 5rpx 10rpx;
+  border-radius: 8rpx;
+  font-size: 24rpx;
+  transform: translateY(-100%);
+}
+
+.back-btn {
+  position: absolute;
+  top: 30rpx;
+  right: 30rpx;
+  padding: 10rpx 20rpx;
+  background: #f1f1f1;
+  border-radius: 50rpx;
+  font-size: 28rpx;
+}

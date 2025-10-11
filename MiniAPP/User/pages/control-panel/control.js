@@ -13,9 +13,11 @@ Page({
     showEMGInput: false,     // 控制EMG数据输入区域的显示
     emgData: [],             // 存储EMG数据
     emgInputArrayStr: '',    // 存储EMG输入字符串
+    emgDeviceId: '',         // 存储设备ID
+    emgThreshold: '',        // 存储阈值
   },
 
-  async onLoad() {
+  async onShow() {
     // 尝试从本地存储加载用户信息
     try {
       await this.loadUserInfo();
@@ -23,7 +25,7 @@ Page({
       console.error("加载用户信息失败", error);
     }
     console.log("加载用户信息为：", this.data.userInfo)
-    // 加载头像
+    // 加载头像                     
     try {
       await this.saveAvatarToLocal(this.data.userInfo.avatarURL);
     } catch (error) {
@@ -72,6 +74,7 @@ Page({
             fileID: avatarURL,
           });
           if (res.statusCode === 200 && res.tempFilePath) {
+            //缓存临时路径到本地
             this.setData({
               tempAvatarUrl: res.tempFilePath
             });
@@ -119,11 +122,24 @@ Page({
         return reject(new Error('临时文件路径为空'));
       }
 
-      let suffix = /\.[^\.]+$/.exec(tempPath)[0];//正则表达提取文件扩展名
+      // 使用正则表达式提取文件扩展名，如果无法提取则默认为.png
+      let suffix = '.png';
+      try {
+        const extMatch = /\.[^\.]+$/.exec(tempPath);
+        if (extMatch && extMatch[0]) {
+          suffix = extMatch[0];
+        }
+      } catch (error) {
+        console.warn('无法提取文件扩展名，使用默认值', error);
+      }
+      
       console.log("====上传头像中====");
+      
+      // 使用tempNickname作为文件夹名，如果为空则使用默认值
+      const folderName = this.data.tempNickname || 'default_user';
 
       wx.cloud.uploadFile({
-        cloudPath: 'userImg/' + this.data.userInfo.nickName + '/' + new Date().getTime() + suffix, //在云端的文件名称
+        cloudPath: 'userImg/' + folderName + '/' + new Date().getTime() + suffix, //在云端的文件名称
         filePath: tempPath, // 临时文件路径
         success: res => {
           console.log('上传成功', res)
@@ -172,8 +188,8 @@ Page({
   showEditModal: function () {
     this.setData({
       showModal: true,
-      tempAvatarUrl: this.data.userInfo.avatarURL,
-      tempNickname: this.data.userInfo.nickName
+      tempAvatarUrl: this.data.tempAvatarUrl,
+      tempNickname: this.data.tempNickname
     });
   },
 
@@ -204,16 +220,16 @@ Page({
       });
       return;
     }
-
+    console.log("准备上传到云:", tempAvatarUrl, tempNickname)
     //上传更新到云
     try {
       //上传头像到云存储
       const fileID = await this.uploadAvatarFile()
-      console.log("准备上传到云:", fileID)
+      console.log("更新云数据库:", fileID)
       //更新用户信息到数据库
       const res = this.updateUserInfo({
         openid: app.globalData.openid,
-        avatarURL: fileID,
+        avatarURL: fileID, 
         nickName: tempNickname
       })
       console.log("更新用户信息结果:", res)
@@ -229,6 +245,8 @@ Page({
     });
     // 显示保存成功提示
     this.showSuccessToast();
+    // 刷新页面
+    this.onShow()
   },
 
   // 显示成功提示
@@ -273,6 +291,7 @@ Page({
           const emgData = res.result.data.map(item => ({
             timestamp: item.timestamp,
             emg_raw: item.emg_raw,
+            threshold: item.threshold,
           }))
           this.setData({
             emgData: emgData,
@@ -299,7 +318,14 @@ Page({
       showEMGInput: !this.data.showEMGInput, // 切换显示状态
       showEMGDataTable: false, // 隐藏查询区域
       emgInputArrayStr: '', // 清空输入框
+      emgDeviceId: app.globalData.dev_id || '', // 默认使用全局设备ID
+      emgThreshold: '', // 清空阈值
     });
+  },
+
+  // 设备ID输入处理
+  onDeviceIdInput: function (e) {
+    this.setData({ emgDeviceId: e.detail.value });
   },
 
   // EMG数据输入处理
@@ -307,14 +333,74 @@ Page({
     this.setData({ emgInputArrayStr: e.detail.value });
   },
 
+  // 阈值输入处理
+  onThresholdInput: function (e) {
+    this.setData({ emgThreshold: e.detail.value });
+  },
+
   // 确认设置EMG数据
   onConfirmSetEMGData: function () {
+    // 验证表单数据
+    if (!this.data.emgDeviceId) {
+      wx.showToast({
+        title: '请输入设备ID',
+        icon: 'none',
+        duration: 2000
+      });
+      return;
+    }
+
+    if (!this.data.emgInputArrayStr) {
+      wx.showToast({
+        title: '请输入EMG原始值数组',
+        icon: 'none',
+        duration: 2000
+      });
+      return;
+    }
+
+    if (!this.data.emgThreshold) {
+      wx.showToast({
+        title: '请输入阈值',
+        icon: 'none',
+        duration: 2000
+      });
+      return;
+    }
+
+    // 处理EMG原始值数组
     const inputStr = this.data.emgInputArrayStr;
-    // 处理输入格式
     const floatArray = inputStr.split(' ').map(s => parseFloat(s.trim())).filter(n => !isNaN(n));
-    console.log('确认设置EMG数据:', floatArray);
-    // TODO: 在这里处理 floatArray，例如上传到云端或进行其他操作
-    this.uploadEMG(floatArray)
+    
+    if (floatArray.length === 0) {
+      wx.showToast({
+        title: 'EMG原始值数组格式错误',
+        icon: 'none',
+        duration: 2000
+      });
+      return;
+    }
+
+    // 处理阈值
+    const threshold = parseFloat(this.data.emgThreshold);
+    if (isNaN(threshold)) {
+      wx.showToast({
+        title: '阈值必须是有效数字',
+        icon: 'none',
+        duration: 2000
+      });
+      return;
+    }
+
+    console.log('确认设置EMG数据:', {
+      deviceId: this.data.emgDeviceId,
+      emgRaw: floatArray,
+      threshold: threshold
+    });
+
+    // 上传数据到云端
+    this.uploadEMG(this.data.emgDeviceId, floatArray, threshold);
+    
     wx.showToast({
       title: 'EMG数据设置成功',
       icon: 'success',
@@ -330,13 +416,14 @@ Page({
   },
 
   // 上传EMG数据到云端
-  uploadEMG(floatArray) {
+  uploadEMG(deviceId, floatArray, threshold) {
     wx.cloud.callFunction({
       name: 'setEMG',
       data: {
         openid: app.globalData.openid,
-        dev_id: app.globalData.dev_id,
+        dev_id: deviceId,
         emg_raw: floatArray,
+        threshold: threshold,
         timestamp: new Date().toLocaleString('zh-CN', {
           year: 'numeric',
           month: '2-digit',

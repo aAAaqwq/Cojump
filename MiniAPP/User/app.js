@@ -7,7 +7,7 @@ App({
     developerServerBaseUrl: 'https://localhost',
     // 保存用户openid
     openid: '',
-    // 设备id
+    // 全局设备id
     dev_id: 'cojump_device1',
     // 保存用户登录信息
     userInfo: null,

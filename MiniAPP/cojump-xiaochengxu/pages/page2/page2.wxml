@@ -1,0 +1,13 @@
+<!--index.wxml-->
+<view class="container" >
+  <image src="/image/KANG_YU.png" mode="widthFix" style="width: 300px; height: auto;"></image>
+  <view style="height: 30px;"></view>
+ <input style="width: 624rpx; display: block; box-sizing: border-box; height: 77rpx" type="number" placeholder="请输入速度(1500--3000)" bindinput="bindInput" class="input-box"value="{{ speedInput }}"/>
+ <view class="speed">
+    <text class="speed">Please enter the speed (1500--3000) </text>
+  </view>  
+ <view style="height: 10px;"></view>
+ <button type="primary" bindtouchstart="start" bindtouchend="lightoff" style="width: 464rpx; display: block; box-sizing: border-box; left: 0rpx; top: 0rpx">按住启动（Press and hold to start）</button>
+ <view style="height: 10px;"></view>
+
+ </view>  

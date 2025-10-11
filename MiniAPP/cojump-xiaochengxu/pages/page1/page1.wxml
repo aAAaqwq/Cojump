@@ -1,0 +1,27 @@
+<!--index.wxml-->
+<view class="container" >
+  <image src="/image/KANG_YU.png" mode="widthFix" class="top-image"></image>
+  <view style="height: 30px;"></view>
+  <button type="primary" bindtap="mode1" style="width: 379rpx; display: block; box-sizing: border-box; left: 0rpx; top: 0rpx">模式1（mode1）</button>
+  <view style="height: 10px;"></view>
+  <button type="primary" bindtap="mode2" style="width: 379rpx; display: block; box-sizing: border-box; left: 0rpx; top: 0rpx">模式2（mode2）</button>
+  <view style="height: 10px;"></view>
+  <button type="primary" bindtap="mode3" style="width: 379rpx; display: block; box-sizing: border-box; left: 0rpx; top: 0rpx">模式3（mode3）</button>
+  <view style="height: 30px;"></view>
+
+  <input style="width: 525rpx; display: block; box-sizing: border-box; height: 77rpx"  type="number" placeholder="请输入训练时长（分钟）" bindinput="bindInput" class="input-box"value="{{ inputTime }}"/>
+  <view class="duration">
+    <text class="duration">Please enter the time in minutes. </text>
+  </view>  
+  <view style="height: 30px;"></view>
+  <view class="countdown">
+    <text class="countdown">时长（duration）：{{ timeStr }} </text>
+  </view>  
+  <view style="height: 30px;"></view>
+  <button type="primary" bindtap="start" style="width: 379rpx; display: block; box-sizing: border-box; left: 0rpx; top: 0rpx">开始倒计时（start）</button>
+  <view style="height: 20px;"></view>
+  <button type="primary" bindtap="pause" style="width: 379rpx; display: block; box-sizing: border-box; left: 0rpx; top: 0rpx">暂停倒计时（pause）</button>
+  <view style="height: 10px;"></view>
+  
+  
+</view>

@@ -3,7 +3,7 @@
   <view class="user-info-card">
     <!-- 头像展示 -->
     <view class="avatar-section">
-      <image class="avatar-image" src="{{tempAvatarUrl || userInfo.avatarUrl || '/images/default-avatar.png'}}" mode="aspectFill"></image>
+      <image class="avatar-image" src="{{tempAvatarUrl || '/images/default-avatar.png'}}" mode="aspectFill"></image>
     </view>
     
     <!-- 昵称展示 -->
@@ -30,11 +30,13 @@
       <view class="emg-table-header">
         <text class="emg-table-cell emg-time-cell">时间</text>
         <text class="emg-table-cell emg-value-cell">值</text>
+        <text class="emg-table-cell emg-threshold-cell">阈值</text>
       </view>
       <block wx:for="{{emgData}}" wx:key="index">
         <view class="emg-table-row">
           <text class="emg-table-cell emg-time-cell">{{item.timestamp}}</text>
           <text class="emg-table-cell emg-value-cell">{{item.emg_raw}}</text>
+          <text class="emg-table-cell emg-threshold-cell">{{item.threshold || '-'}}</text>
         </view>
       </block>
     </view>
@@ -42,10 +44,32 @@
 
   <!-- EMG数据设置区域 -->
   <view class="emg-input-section" wx:if="{{showEMGInput}}">
-    <view class="section-title">设置 EMG 数据 (浮点数数组，空格分隔)</view>
-    <textarea class="emg-textarea" placeholder="请输入浮点数数组，例如：1.2 3.4 5.6" bindinput="onEMGInput" value="{{emgInputArrayStr}}"></textarea>
-    <button class="function-btn confirm-btn" bindtap="onConfirmSetEMGData">确认设置</button>
-    <button class="function-btn cancel-btn" bindtap="onCancelSetEMGData">取消</button>
+    <view class="section-title">设置 EMG 数据</view>
+    <form class="emg-form">
+      <!-- 设备ID输入 -->
+      <view class="form-item">
+        <text class="form-label">设备ID</text>
+        <input class="form-input" type="text" placeholder="请输入设备ID" bindinput="onDeviceIdInput" value="{{emgDeviceId}}"/>
+      </view>
+      
+      <!-- EMG原始值数组输入 -->
+      <view class="form-item">
+        <text class="form-label">EMG原始值数组 (浮点数数组，空格分隔)</text>
+        <textarea class="emg-textarea" placeholder="请输入浮点数数组，例如：1.2 3.4 5.6" bindinput="onEMGInput" value="{{emgInputArrayStr}}"></textarea>
+      </view>
+      
+      <!-- 阈值输入 -->
+      <view class="form-item">
+        <text class="form-label">阈值</text>
+        <input class="form-input" type="digit" placeholder="请输入阈值" bindinput="onThresholdInput" value="{{emgThreshold}}"/>
+      </view>
+      
+      <!-- 按钮区域 -->
+      <view class="form-buttons">
+        <button class="function-btn confirm-btn" bindtap="onConfirmSetEMGData">确认设置</button>
+        <button class="function-btn cancel-btn" bindtap="onCancelSetEMGData">取消</button>
+      </view>
+    </form>
   </view>
 
   <!-- 编辑浮窗 -->
@@ -62,7 +86,7 @@
       <view class="form-item">
         <text class="form-label">头像</text>
         <button class="avatar-upload-btn" open-type="chooseAvatar"  bindchooseavatar="onChooseAvatar">
-          <image class="avatar-preview" src="{{tempAvatarUrl || userInfo.avatarUrl}}" mode="aspectFill"></image>
+          <image class="avatar-preview" src="{{tempAvatarUrl}}" mode="aspectFill"></image>
         </button>
       </view>
       
