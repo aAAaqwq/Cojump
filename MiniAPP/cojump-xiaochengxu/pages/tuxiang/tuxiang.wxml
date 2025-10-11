@@ -1,5 +1,56 @@
-<!--index.wxml-->
+<!--EMG阈值历史趋势图-->
 <view class="container">
-  <ec-canvas id="mychart-dom-line" canvas-id="mychart-line" ec="{{ ec }}"></ec-canvas>
+  <!-- 标题栏 -->
+  <view class="header">
+    <text class="title">EMG阈值历史趋势</text>
+    <view class="refresh-btn" bindtap="refreshData">
+      <text class="refresh-icon">🔄</text>
+    </view>
+  </view>
+
+  <!-- 时间范围选择器 -->
+  <view class="time-selector">
+    <view class="time-item {{timeRange === 'day' ? 'active' : ''}}" 
+          data-range="day" 
+          bindtap="switchTimeRange">
+      今日
+    </view>
+    <view class="time-item {{timeRange === 'week' ? 'active' : ''}}" 
+          data-range="week" 
+          bindtap="switchTimeRange">
+      本周
+    </view>
+    <view class="time-item {{timeRange === 'month' ? 'active' : ''}}" 
+          data-range="month" 
+          bindtap="switchTimeRange">
+      本月
+    </view>
+    <view class="time-item {{timeRange === 'all' ? 'active' : ''}}" 
+          data-range="all" 
+          bindtap="switchTimeRange">
+      全部
+    </view>
+  </view>
+
+  <!-- 加载状态 -->
+  <view wx:if="{{loading}}" class="loading-container">
+    <text class="loading-text">正在加载数据...</text>
+  </view>
+
+  <!-- 无数据提示 -->
+  <view wx:elif="{{!hasData}}" class="no-data-container">
+    <text class="no-data-icon">📊</text>
+    <text class="no-data-text">暂无EMG历史数据</text>
+    <text class="no-data-desc">请先进行EMG测量训练</text>
+  </view>
+
+  <!-- 图表容器 -->
+  <view wx:else class="chart-container">
+    <ec-canvas id="mychart-dom-line" 
+               canvas-id="mychart-line" 
+               ec="{{ ec }}"
+               bind:init="onChartInit">
+    </ec-canvas>
+  </view>
 </view>
 

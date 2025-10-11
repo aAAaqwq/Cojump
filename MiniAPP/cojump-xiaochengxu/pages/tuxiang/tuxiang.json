@@ -1,4 +1,8 @@
 {
+  "navigationBarTitleText": "EMG阈值趋势",
+  "navigationBarBackgroundColor": "#5470c6",
+  "navigationBarTextStyle": "white",
+  "backgroundColor": "#f8f9fa",
   "usingComponents": {
     "ec-canvas": "../../ec-canvas/ec-canvas"
   }
