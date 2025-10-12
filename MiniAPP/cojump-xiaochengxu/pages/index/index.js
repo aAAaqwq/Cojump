@@ -283,7 +283,7 @@ Page({
 
   ToPage3: function() {
     wx.navigateTo({
-      url: '/pages/page3/page3'
+      url: '/pages/tuxiang/tuxiang'
     });
   console.log('EMG图像')
   },

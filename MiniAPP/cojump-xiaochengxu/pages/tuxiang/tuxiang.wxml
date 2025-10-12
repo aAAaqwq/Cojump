@@ -1,56 +1,212 @@
 <!--EMG阈值历史趋势图-->
-<view class="container">
-  <!-- 标题栏 -->
-  <view class="header">
-    <text class="title">EMG阈值历史趋势</text>
-    <view class="refresh-btn" bindtap="refreshData">
-      <text class="refresh-icon">🔄</text>
+<view class="page-container">
+  <!-- 顶部控制区域 -->
+  <view class="control-section">
+    <!-- 标题栏 -->
+    <view class="header">
+      <text class="title">EMG阈值历史趋势</text>
+      <view class="refresh-btn" bindtap="refreshData">
+        <text class="refresh-icon">🔄</text>
+      </view>
+    </view>
+
+  </view>
+
+  <!-- 患者友好视图 -->
+  <view wx:if="{{showPatientView}}" class="patient-view">
+    <!-- 今日状态卡片 -->
+    <view class="status-card {{currentStatus.status}}">
+      <view class="status-header">
+        <text class="status-title">🎯 今日EMG状态</text>
+        <view class="status-indicator">
+          <text wx:if="{{currentStatus.status === 'good'}}" class="status-emoji">🟢</text>
+          <text wx:elif="{{currentStatus.status === 'stable'}}" class="status-emoji">🟡</text>
+          <text wx:elif="{{currentStatus.status === 'attention'}}" class="status-emoji">🔴</text>
+        </view>
+      </view>
+      
+      <view class="status-content">
+        <view class="main-value">
+          <text class="value-number">{{currentStatus.todayValue}}</text>
+          <text class="value-unit">μV</text>
+        </view>
+        
+        <view class="improvement">
+          <text wx:if="{{currentStatus.improvement > 0}}" class="improvement-text positive">
+            📈 比昨天 +{{currentStatus.improvement.toFixed(1)}}
+          </text>
+          <text wx:elif="{{currentStatus.improvement < 0}}" class="improvement-text negative">
+            📉 比昨天 {{currentStatus.improvement.toFixed(1)}}
+          </text>
+          <text wx:else class="improvement-text neutral">
+            ➡️ 与昨天持平
+          </text>
+        </view>
+        
+        <view class="status-message">
+          <text class="message-text">{{currentStatus.message}}</text>
+        </view>
+      </view>
+    </view>
+
+    <!-- 训练日历卡片 -->
+    <view class="calendar-card">
+      <!-- 日历头部 -->
+      <view class="calendar-header">
+        <view class="header-title">
+          <view class="calendar-icon">📅</view>
+          <text class="calendar-title">训练日历</text>
+        </view>
+      </view>
+      
+      <!-- 月份导航 -->
+      <view class="calendar-nav">
+        <button class="nav-btn prev" bindtap="goToPreviousMonth">
+          <text class="nav-icon">‹</text>
+        </button>
+        <view class="month-display">
+          <text class="month-year">{{currentYear}}</text>
+          <text class="month-number">{{currentMonth}}月</text>
+        </view>
+        <button class="nav-btn next" bindtap="goToNextMonth">
+          <text class="nav-icon">›</text>
+        </button>
+      </view>
+      
+      <!-- 星期标题 -->
+      <view class="weekdays-header">
+        <text wx:for="{{['日','一','二','三','四','五','六']}}" wx:key="*this" class="weekday">{{item}}</text>
+      </view>
+      
+      <!-- 日历网格 -->
+      <view class="calendar-grid">
+        <view wx:for="{{calendarDays}}" 
+              wx:key="dateKey"
+              class="calendar-day {{item.isCurrentMonth ? 'current-month' : 'other-month'}} {{item.isToday ? 'today' : ''}} {{item.hasEMGData ? 'has-data' : 'no-data'}} {{item.isSelected ? 'selected' : ''}}"
+              data-datekey="{{item.dateKey}}"
+              bindtap="selectDate">
+          
+          <!-- 日期数字 -->
+          <view class="day-header">
+            <text class="day-number">{{item.date}}</text>
+            <view wx:if="{{item.isToday}}" class="today-indicator"></view>
+          </view>
+          
+          <!-- 数据指示器 -->
+          <view class="day-content">
+            <view wx:if="{{item.hasEMGData}}" class="data-indicator success">
+              <view class="indicator-dot"></view>
+              <text class="data-value">{{item.emgValue}}</text>
+            </view>
+            <view wx:else class="data-indicator empty">
+              <view class="indicator-dot"></view>
+              <text class="no-data-text">未训练</text>
+            </view>
+          </view>
+        </view>
+      </view>
+      
+      <!-- 日历底部图例 -->
+      <view class="calendar-legend">
+        <view class="legend-item">
+          <view class="legend-dot success"></view>
+          <text class="legend-text">已训练</text>
+        </view>
+        <view class="legend-item">
+          <view class="legend-dot empty"></view>
+          <text class="legend-text">未训练</text>
+        </view>
+        <view class="legend-item">
+          <view class="legend-dot today"></view>
+          <text class="legend-text">今天</text>
+        </view>
+        <view class="legend-item">
+          <view class="legend-dot selected"></view>
+          <text class="legend-text">已选择</text>
+        </view>
+      </view>
+      
+      <!-- 选中日期信息显示 -->
+      <view wx:if="{{selectedDateInfo}}" class="selected-date-info">
+        <view class="selected-info-header">
+          <text class="selected-info-title">📍 已选择日期</text>
+        </view>
+        <view class="selected-info-content">
+          <text class="selected-date-text">{{selectedDateInfo.dateKey}}</text>
+          <view wx:if="{{selectedDateInfo.hasEMGData}}" class="selected-emg-info">
+            <text class="selected-emg-value">{{selectedDateInfo.emgValue}}</text>
+          </view>
+          <view wx:else class="selected-no-data">
+            <text class="selected-no-data-text">无训练数据</text>
+          </view>
+        </view>
+      </view>
+    </view>
+
+    <!-- 历史数据查看卡片 -->
+    <view class="history-card">
+      <view class="history-header">
+        <text class="history-title">📈 历史数据查看</text>
+      </view>
+      
+      <view class="history-options">
+        <button class="history-btn" bindtap="selectWeek">
+          <text class="btn-icon">📅</text>
+          <text class="btn-text">查看选中周</text>
+          <text class="btn-desc">基于选中日期查看该周趋势</text>
+        </button>
+        
+        <button class="history-btn" bindtap="selectMonth">
+          <text class="btn-icon">📊</text>
+          <text class="btn-text">查看选中月</text>
+          <text class="btn-desc">基于选中日期查看该月数据</text>
+        </button>
+      </view>
+    </view>
+
+    <!-- 快速统计卡片 -->
+    <view class="stats-card">
+      <view class="stats-header">
+        <text class="stats-title">📊 快速统计</text>
+      </view>
+      
+      <view class="stats-grid">
+        <view class="stat-item">
+          <text class="stat-value">{{weeklyProgress.average.toFixed(1)}}</text>
+          <text class="stat-label">本周平均</text>
+        </view>
+        <view class="stat-item">
+          <text class="stat-value">{{totalTrainingDays}}</text>
+          <text class="stat-label">训练天数</text>
+        </view>
+        <view class="stat-item">
+          <text class="stat-value">{{bestValue}}</text>
+          <text class="stat-label">最佳记录</text>
+        </view>
+      </view>
     </view>
   </view>
 
-  <!-- 时间范围选择器 -->
-  <view class="time-selector">
-    <view class="time-item {{timeRange === 'day' ? 'active' : ''}}" 
-          data-range="day" 
-          bindtap="switchTimeRange">
-      今日
-    </view>
-    <view class="time-item {{timeRange === 'week' ? 'active' : ''}}" 
-          data-range="week" 
-          bindtap="switchTimeRange">
-      本周
-    </view>
-    <view class="time-item {{timeRange === 'month' ? 'active' : ''}}" 
-          data-range="month" 
-          bindtap="switchTimeRange">
-      本月
-    </view>
-    <view class="time-item {{timeRange === 'all' ? 'active' : ''}}" 
-          data-range="all" 
-          bindtap="switchTimeRange">
-      全部
-    </view>
-  </view>
 
-  <!-- 加载状态 -->
-  <view wx:if="{{loading}}" class="loading-container">
-    <text class="loading-text">正在加载数据...</text>
-  </view>
-
-  <!-- 无数据提示 -->
-  <view wx:elif="{{!hasData}}" class="no-data-container">
-    <text class="no-data-icon">📊</text>
-    <text class="no-data-text">暂无EMG历史数据</text>
-    <text class="no-data-desc">请先进行EMG测量训练</text>
-  </view>
-
-  <!-- 图表容器 -->
-  <view wx:else class="chart-container">
-    <ec-canvas id="mychart-dom-line" 
-               canvas-id="mychart-line" 
-               ec="{{ ec }}"
-               bind:init="onChartInit">
-    </ec-canvas>
+  <!-- 底部操作区域 -->
+  <view class="action-section">
+    <view class="action-buttons">
+      <button class="action-btn primary" bindtap="addTestDataPoint">
+        <text class="btn-icon">📈</text>
+        <text class="btn-text">添加指定日期数据</text>
+      </button>
+      <button class="action-btn secondary" bindtap="clearAllData">
+        <text class="btn-icon">🗑️</text>
+        <text class="btn-text">清空所有数据</text>
+      </button>
+    </view>
+    
+    <!-- 调试按钮 -->
+    <view class="debug-buttons">
+      <button class="debug-btn" bindtap="testDrawChart">
+        <text class="btn-text">测试绘制</text>
+      </button>
+    </view>
   </view>
 </view>
 

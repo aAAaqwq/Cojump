@@ -150,7 +150,7 @@ Component({
           const canvasNode = res[0].node
           this.canvasNode = canvasNode
 
-          const canvasDpr = wx.getSystemInfoSync().pixelRatio
+          const canvasDpr = wx.getDeviceInfo().pixelRatio
           const canvasWidth = res[0].width
           const canvasHeight = res[0].height
 
