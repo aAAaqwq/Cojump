@@ -4,6 +4,8 @@ const cloud = require('wx-server-sdk')
 cloud.init({ env: cloud.DYNAMIC_CURRENT_ENV })
 const db = cloud.database()
 
+const TableName = 'training_data'
+
 exports.main = async (event, context) => {
   const {
     // 筛选参数
@@ -13,7 +15,7 @@ exports.main = async (event, context) => {
     
     // 排序参数
     sortBy = 'recordTime', // recordTime, emgThreshold, deviceId
-    sortOrder = 'asc', // asc, desc
+    sortOrder = 'desc', // asc, desc
     
     // 分页参数
     currentPage = 1,
@@ -23,30 +25,29 @@ exports.main = async (event, context) => {
     abnormalThreshold = 60
   } = event
 
-  const TableName = 'training_data'
+
 
   //To Do: 接口鉴权
 
   try {
     // 1. 构建查询条件
-    const whereCondition = buildWhereCondition(currentFilter, searchKeyword, advancedFilters)
+    const whereCondition = buildWhereCondition(currentFilter, searchKeyword, advancedFilters,abnormalThreshold)
     
-    // 2. 构建排序条件
-    const orderBy = buildOrderBy(sortBy, sortOrder)
-
     console.log('whereCondition:', whereCondition);
-    console.log('orderBy:', orderBy);
+    console.log('sortBy:', sortBy, 'sortOrder:', sortOrder);
     
     // 3. 执行数据查询
     const dataResult = await db.collection(TableName)
       .where(whereCondition)
-      .orderBy(Object.keys(orderBy)[0], Object.values(orderBy)[0])
+      .orderBy(sortBy, sortOrder)
       .skip((currentPage - 1) * pageSize)
       .limit(pageSize)
       .get()
     
     // 4. 计算统计数据
-    const statistics = await calculateStatistics()
+    const statistics = await calculateStatistics(abnormalThreshold)
+    
+    console.log('统计数据:', statistics);
     
     return {
       success: true,
@@ -88,38 +89,43 @@ function buildWhereCondition(currentFilter, searchKeyword, advancedFilters, abno
   // 基础筛选
   if (currentFilter === 'today') {
     const today = new Date()
-    today.setHours(0, 0, 0, 0)
+    const todayStr = today.toISOString().split('T')[0] // 2025-10-21
     const tomorrow = new Date(today)
     tomorrow.setDate(tomorrow.getDate() + 1)
+    const tomorrowStr = tomorrow.toISOString().split('T')[0] // 2025-10-22
     
-    whereCondition.recordTime = {
-      $gte: today,   // >=今天
-      $lt: tomorrow  // <明天
-    }
+    whereCondition.recordTime = db.command.and([
+      db.command.gte(todayStr),     // >= "2025-10-21"
+      db.command.lt(tomorrowStr)    // < "2025-10-22"
+    ])
   } else if (currentFilter === 'week') {
     const weekAgo = new Date()
     weekAgo.setDate(weekAgo.getDate() - 7)
-    whereCondition.recordTime = { $gte: weekAgo }
+    const weekAgoStr = weekAgo.toISOString().split('T')[0] // 2025-10-14
+    whereCondition.recordTime = db.command.gte(weekAgoStr)
   } else if (currentFilter === 'month') {
-    const monthAgo = new Date()
-    monthAgo.setMonth(monthAgo.getMonth() - 1)
-    whereCondition.recordTime = { $gte: monthAgo }
+    // 获取本月第一天
+    const now = new Date()
+    const firstDayOfMonth = new Date(now.getFullYear(), now.getMonth(), 1)
+    const firstDayStr = firstDayOfMonth.toISOString().split('T')[0] // 2025-10-01
+    
+    whereCondition.recordTime = db.command.gte(firstDayStr)
   } else if (currentFilter === 'abnormal') {
-    whereCondition.emgThreshold = { $lt: abnormalThreshold }
+    whereCondition.emgThreshold = db.command.lt(abnormalThreshold)
   }
   
   // 搜索关键词
   if (searchKeyword) {
-    whereCondition.$or = [
-      { openid: db.RegExp({ regexp: searchKeyword, options: 'i' }) }, //正则表达式匹配：不区分大小写
+    whereCondition = db.command.or([
+      { openId: db.RegExp({ regexp: searchKeyword, options: 'i' }) }, //正则表达式匹配：不区分大小写
       { deviceId: db.RegExp({ regexp: searchKeyword, options: 'i' }) }
-    ]
+    ])
   }
   
   // 高级筛选
-  if (advancedFilters.openid) {
-    whereCondition.openid = db.RegExp({ 
-      regexp: advancedFilters.openid, 
+  if (advancedFilters.openId) {
+    whereCondition.openId = db.RegExp({ 
+      regexp: advancedFilters.openId, 
       options: 'i' 
     })
   }
@@ -132,23 +138,31 @@ function buildWhereCondition(currentFilter, searchKeyword, advancedFilters, abno
   }
   
   if (advancedFilters.startTime || advancedFilters.endTime) {
-    whereCondition.recordTime = {}
+    const timeConditions = []
     if (advancedFilters.startTime) {
-      whereCondition.recordTime.$gte = new Date(advancedFilters.startTime)
+      // 将日期转换为字符串格式进行比较
+      const startDate = new Date(advancedFilters.startTime)
+      const startDateStr = startDate.toISOString().split('T')[0]
+      timeConditions.push(db.command.gte(startDateStr))
     }
     if (advancedFilters.endTime) {
-      whereCondition.recordTime.$lte = new Date(advancedFilters.endTime)
+      // 将日期转换为字符串格式进行比较
+      const endDate = new Date(advancedFilters.endTime)
+      const endDateStr = endDate.toISOString().split('T')[0]
+      timeConditions.push(db.command.lte(endDateStr))
     }
+    whereCondition.recordTime = db.command.and(timeConditions)
   }
   
   if (advancedFilters.minEmg || advancedFilters.maxEmg) {
-    whereCondition.emgThreshold = {}
+    const emgConditions = []
     if (advancedFilters.minEmg) {
-      whereCondition.emgThreshold.$gte = parseFloat(advancedFilters.minEmg)
+      emgConditions.push(db.command.gte(parseFloat(advancedFilters.minEmg)))
     }
     if (advancedFilters.maxEmg) {
-      whereCondition.emgThreshold.$lte = parseFloat(advancedFilters.maxEmg)
+      emgConditions.push(db.command.lte(parseFloat(advancedFilters.maxEmg)))
     }
+    whereCondition.emgThreshold = db.command.and(emgConditions)
   }
   
   return whereCondition
@@ -157,18 +171,17 @@ function buildWhereCondition(currentFilter, searchKeyword, advancedFilters, abno
 // 构建排序条件
 function buildOrderBy(sortBy, sortOrder) {
   const orderBy = {}
-  const direction = sortOrder === 'asc' ? 1 : -1
   
   switch (sortBy) {
     case 'emgThreshold':
-      orderBy.emgThreshold = direction
+      orderBy.emgThreshold = sortOrder
       break
     case 'deviceId':
-      orderBy.deviceId = direction
+      orderBy.deviceId = sortOrder
       break
     case 'recordTime':
     default:
-      orderBy.recordTime = direction
+      orderBy.recordTime = sortOrder
       break
   }
   
@@ -176,7 +189,7 @@ function buildOrderBy(sortBy, sortOrder) {
 }
 
 // 计算统计数据
-async function calculateStatistics() {
+async function calculateStatistics(abnormalThreshold) {
   try {
     const [totalResult, todayResult, abnormalResult, deviceResult] = await Promise.all([
       // 总记录数
@@ -184,15 +197,15 @@ async function calculateStatistics() {
       
       // 今日记录数
       db.collection(TableName).where({
-        recordTime: {
-          $gte: new Date(new Date().setHours(0, 0, 0, 0)),
-          $lt: new Date(new Date().setHours(23, 59, 59, 999))
-        }
+        recordTime: db.command.and([
+          db.command.gte(new Date().toISOString().split('T')[0]),
+          db.command.lt(new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString().split('T')[0])
+        ])
       }).count(),
       
       // 异常记录数
       db.collection(TableName).where({
-        emgThreshold: { $lt: abnormalThreshold }
+        emgThreshold: db.command.lt(abnormalThreshold)
       }).count(),
       
       // 活跃设备数

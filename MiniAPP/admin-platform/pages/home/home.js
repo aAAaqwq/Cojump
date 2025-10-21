@@ -202,6 +202,9 @@ Page({
           pageLoading: false,
           loading: false
         });
+         
+        // 更新分页按钮
+        this.updatePageNumbers();
       } else {
         throw new Error(result.result.message || '获取数据失败');
       }

@@ -198,7 +198,7 @@
   </view>
 
   <!-- 分页区域 -->
-  <view class="pagination-section" wx:if="{{totalRecords > pageSize}}">
+  <view class="pagination-section" wx:if="{{totalPages > 1}}">
     <view class="pagination">
       <button class="page-btn {{currentPage <= 1 ? 'disabled' : ''}}" bindtap="prevPage" disabled="{{currentPage <= 1}}">
         <text class="page-btn-text">上一页</text>
