@@ -1,176 +1,5 @@
 const app = getApp();
 
-// 简化的原生canvas图表绘制
-function drawChart(ctx, dates, values, canvasWidth, canvasHeight) {
-  console.log('drawChart开始:', { 
-    dates: dates ? dates.length : 0, 
-    values: values ? values.length : 0, 
-    canvasWidth, 
-    canvasHeight,
-    canvasWidthValid: !isNaN(canvasWidth) && canvasWidth > 0,
-    canvasHeightValid: !isNaN(canvasHeight) && canvasHeight > 0
-  });
-  
-  // 参数验证
-  if (!dates || dates.length === 0 || !values || values.length === 0) {
-    console.log('drawChart: 数据为空，跳过绘制');
-    return;
-  }
-  
-  if (!ctx) {
-    console.error('drawChart: ctx为空');
-    return;
-  }
-  
-  if (isNaN(canvasWidth) || isNaN(canvasHeight) || canvasWidth <= 0 || canvasHeight <= 0) {
-    console.error('drawChart: 尺寸无效', { canvasWidth, canvasHeight });
-    return;
-  }
-
-  // 清除画布
-  ctx.clearRect(0, 0, canvasWidth, canvasHeight);
-  
-  // 设置样式 - 根据canvas大小调整padding
-  const padding = Math.max(30, canvasWidth * 0.08); // 至少30px，或canvas宽度的8%
-  const chartWidth = canvasWidth - 2 * padding;
-  const chartHeight = canvasHeight - 2 * padding;
-  
-  console.log('drawChart尺寸:', { 
-    canvasWidth, 
-    canvasHeight, 
-    padding, 
-    chartWidth, 
-    chartHeight,
-    chartWidthValid: chartWidth > 0,
-    chartHeightValid: chartHeight > 0
-  });
-  
-  // 确保图表尺寸有效
-  if (chartWidth <= 0 || chartHeight <= 0) {
-    console.error('drawChart: 计算出的图表尺寸无效', { chartWidth, chartHeight });
-    return;
-  }
-  
-  // 计算数据范围
-  const minValue = Math.min(...values);
-  const maxValue = Math.max(...values);
-  const valueRange = maxValue - minValue;
-  const valuePadding = valueRange * 0.1; // 10%的边距
-  
-  // 绘制背景
-  ctx.fillStyle = '#ffffff';
-  ctx.fillRect(0, 0, canvasWidth, canvasHeight);
-  
-  // 绘制网格线
-  ctx.strokeStyle = '#f0f0f0';
-  ctx.lineWidth = 1;
-  
-  // 水平网格线
-  for (let i = 0; i <= 5; i++) {
-    const y = padding + (chartHeight / 5) * i;
-    ctx.beginPath();
-    ctx.moveTo(padding, y);
-    ctx.lineTo(padding + chartWidth, y);
-    ctx.stroke();
-  }
-  
-  // 垂直网格线
-  for (let i = 0; i <= 5; i++) {
-    const x = padding + (chartWidth / 5) * i;
-    ctx.beginPath();
-    ctx.moveTo(x, padding);
-    ctx.lineTo(x, padding + chartHeight);
-    ctx.stroke();
-  }
-  
-  // 绘制坐标轴
-  ctx.strokeStyle = '#333';
-  ctx.lineWidth = 2;
-  ctx.beginPath();
-  ctx.moveTo(padding, padding);
-  ctx.lineTo(padding, padding + chartHeight);
-  ctx.lineTo(padding + chartWidth, padding + chartHeight);
-  ctx.stroke();
-  
-  // 绘制数据点和连线
-  if (values.length > 1) {
-    console.log('绘制折线图:', {
-      数据点数量: dates.length,
-      数值范围: { minValue, maxValue, valueRange },
-      图表区域: { chartWidth, chartHeight },
-      坐标转换说明: 'X轴=时间位置，Y轴=数值归一化位置'
-    });
-    
-    ctx.strokeStyle = '#5470c6';
-    ctx.lineWidth = 3;
-    ctx.beginPath();
-    
-    dates.forEach((date, index) => {
-      // X轴坐标计算：时间在时间轴上的位置
-      const x = padding + (chartWidth / (dates.length - 1)) * index;
-      
-      // Y轴坐标计算：数值在数值轴上的位置（归一化）
-      const normalizedValue = (values[index] - minValue + valuePadding) / (valueRange + 2 * valuePadding);
-      const y = padding + chartHeight - normalizedValue * chartHeight;
-      
-      console.log(`数据点${index}:`, {
-        日期: date,
-        数值: values[index],
-        X坐标: x.toFixed(1),
-        Y坐标: y.toFixed(1),
-        归一化值: normalizedValue.toFixed(3)
-      });
-      
-      if (index === 0) {
-        ctx.moveTo(x, y);
-      } else {
-        ctx.lineTo(x, y);
-      }
-    });
-    ctx.stroke();
-    
-    // 绘制数据点
-    ctx.fillStyle = '#5470c6';
-    dates.forEach((date, index) => {
-      const x = padding + (chartWidth / (dates.length - 1)) * index;
-      const normalizedValue = (values[index] - minValue + valuePadding) / (valueRange + 2 * valuePadding);
-      const y = padding + chartHeight - normalizedValue * chartHeight;
-      
-      ctx.beginPath();
-      ctx.arc(x, y, 4, 0, 2 * Math.PI);
-      ctx.fill();
-    });
-  }
-  
-  // 绘制Y轴标签
-  ctx.fillStyle = '#333';
-  ctx.font = 'bold 14px sans-serif';
-  ctx.textAlign = 'right';
-  ctx.textBaseline = 'middle';
-  for (let i = 0; i <= 5; i++) {
-    const value = minValue + (valueRange / 5) * i;
-    const y = padding + chartHeight - (chartHeight / 5) * i;
-    // 确保标签位置在图表区域内且清晰可见
-    if (y >= padding && y <= padding + chartHeight) {
-      ctx.fillText(value.toFixed(1), padding - 15, y);
-    }
-  }
-  
-  // 绘制X轴标签
-  ctx.textAlign = 'center';
-  const step = Math.max(1, Math.floor(dates.length / 5));
-  for (let i = 0; i < dates.length; i += step) {
-    const x = padding + (chartWidth / (dates.length - 1)) * i;
-    ctx.fillText(dates[i], x, padding + chartHeight + 20);
-  }
-  
-  // 绘制标题
-  ctx.fillStyle = '#333';
-  ctx.font = 'bold 16px sans-serif';
-  ctx.textAlign = 'center';
-  ctx.fillText('EMG阈值变化趋势', canvasWidth / 2, 25);
-}
-
 Page({
   onShareAppMessage: function (res) {
     return {
@@ -189,11 +18,32 @@ Page({
     currentMonth: new Date().getMonth() + 1, // 当前月份
     calendarDays: [], // 日历数据
     selectedDate: null, // 选中的日期（存储dateKey）
-    selectedDateInfo: null, // 选中日期的详细信息
-    // 图表相关（保留用于测试）
-    canvasWidth: 0,
-    canvasHeight: 0,
-    showCanvas: false,
+    selectedDateInfo: null, // 选中日期的详细信息:dateKey,date,year,month,day,weekDay,emgValue,hasEMGData
+    // Canvas弹窗相关
+    showChartModal: false,
+    chartModalData: {
+      title: '',
+      dates: [],
+      values: [],
+      type: 'line',
+      average: 0,
+      max: 0,
+      min: 0
+    },
+    // 图表交互状态
+    isScaling: false,
+    isPanning: false,
+    chartScale: 1,
+    chartPanX: 0,
+    chartPanY: 0,
+    initialDistance: 0,
+    initialScale: 1,
+    lastTouchX: 0,
+    lastTouchY: 0,
+    initialPanX: 0,
+    initialPanY: 0,
+    // 弹窗状态
+    modalInitialized: false,
     // 患者友好视图
     showPatientView: true, // 新增：患者友好视图
     currentStatus: {
@@ -214,135 +64,45 @@ Page({
     bestValue: 0
   },
 
-  // 初始化重试计数器
-  _canvasInitRetryCount: 0,
-  _maxRetryCount: 3,
 
   onLoad() {
     this.loadEMGData();
   },
 
   onShow() {
-    // 页面显示时也尝试初始化canvas尺寸
-    setTimeout(() => {
-      if (this.data.canvasWidth === 0 || this.data.canvasHeight === 0) {
-        console.log('onShow: 重新初始化canvas尺寸');
-        this.initCanvasSize();
-      }
-    }, 200);
+    // 页面显示时的逻辑
   },
 
   onReady() {
-    // 延迟获取canvas尺寸，确保DOM已渲染
-    setTimeout(() => {
-      this.initCanvasSize();
-    }, 100);
+    // 页面准备完成时的逻辑
   },
 
-  // 初始化canvas尺寸
-  initCanvasSize() {
-    // 防止重复初始化
-    if (this._initializingCanvas) {
-      console.log('Canvas正在初始化中，跳过重复调用');
-      return;
-    }
-    
-    this._initializingCanvas = true;
-    
-    const query = wx.createSelectorQuery();
-    query.select('.chart-container').boundingClientRect((rect) => {
-      console.log('图表容器尺寸查询结果:', rect);
-      
-      // 获取设备像素比，如果获取失败则使用默认值
-      let dpr = 1;
-      try {
-        const deviceInfo = wx.getDeviceInfo();
-        dpr = deviceInfo.pixelRatio || 1;
-        console.log('设备像素比:', dpr);
-      } catch (e) {
-        console.log('获取设备像素比失败，使用默认值1');
-        dpr = 1;
-      }
-      
-      let canvasWidth, canvasHeight;
-      
-      if (rect && rect.width > 0 && rect.height > 0) {
-        // 使用容器尺寸
-        canvasWidth = rect.width * dpr;
-        canvasHeight = rect.height * dpr;
-        console.log('使用容器尺寸设置Canvas:', {
-          containerWidth: rect.width,
-          containerHeight: rect.height,
-          dpr: dpr,
-          canvasWidth: canvasWidth,
-          canvasHeight: canvasHeight
-        });
-      } else {
-        // 使用默认尺寸
-        canvasWidth = 350 * dpr;
-        canvasHeight = 400 * dpr;
-        console.log('使用默认尺寸设置Canvas:', {
-          canvasWidth: canvasWidth,
-          canvasHeight: canvasHeight,
-          dpr: dpr
-        });
-      }
-      
-      // 确保尺寸有效
-      if (isNaN(canvasWidth) || isNaN(canvasHeight) || canvasWidth <= 0 || canvasHeight <= 0) {
-        console.log('Canvas尺寸无效，使用备用尺寸');
-        canvasWidth = 350;
-        canvasHeight = 400;
-      }
-      
-      this.setData({
-        canvasWidth: canvasWidth,
-        canvasHeight: canvasHeight
-      });
-      
-      this._initializingCanvas = false;
-      
-      // 如果有数据，立即绘制图表
-      if (this.data.chartDates.length > 0 && this.data.hasData) {
-        this.setData({ showCanvas: true });
-        setTimeout(() => {
-          this.updateChart(this.data.chartDates, this.data.chartValues);
-        }, 100);
-      }
-    }).exec();
-  },
 
   // 加载EMG历史数据
   loadEMGData() {
     this.setData({ loading: true });
     
     // 模拟数据生成（实际项目中替换为云函数调用）
-    setTimeout(() => {
-      const sampleData = this.generateSampleEMGData();
-      this.processEMGData(sampleData);
-      this.setData({ hasData: true, loading: false });
+    // setTimeout(() => {
+    //   const sampleData = this.generateSampleEMGData();
+    //   this.processEMGData(sampleData);
+    //   this.setData({ hasData: true, loading: false });
       
-      // 延迟绘制图表，确保canvas已准备好
-      setTimeout(() => {
-        if (this.data.chartDates.length > 0) {
-          this._canvasInitRetryCount = 0; // 重置重试计数器
-          this.setData({ showCanvas: true });
-          this.updateChart(this.data.chartDates, this.data.chartValues);
-        }
-      }, 800);
-    }, 1000);
+    // }, 1000);
 
     // 实际的云函数调用（暂时注释）
-    /*
+    ///*
     wx.cloud.callFunction({
       name: 'getEMG',
       data: {
-        openid: app.globalData.openId
+        openId: app.globalData.openId
       },
       success: (res) => {
         console.log('EMG数据获取成功:', res);
         if (res.result.success && res.result.data.length > 0) {
-          this.processEMGData(res.result.data);
+          // 处理获取的EMG数据
+          const thresholdData = this.extractEMGData(res.result.data);
+          this.processEMGData(thresholdData);
           this.setData({ hasData: true });
         } else {
           this.setData({ hasData: false });
@@ -363,7 +123,32 @@ Page({
         });
       }
     });
-    */
+    //*/
+  },
+  // 提取EMG阈值数据
+  extractEMGData(data) {
+    const thresholdData = {};
+    data.forEach(item => {
+      // 将recordTime转换为日期
+      const date = new Date(item.recordTime);
+      const dateKey = this.formatDateKey(date);
+      thresholdData[dateKey] = item.emgThreshold;
+    });
+    return thresholdData;
+  },
+
+   // 处理EMG阈值数据，转换为日历格式
+   processEMGData(rawData) {
+    console.log("处理EMG阈值数据:",rawData)
+    // 保存所有原始数据
+    this.setData({ emgData: rawData });
+    this.setData({ hasData: true });
+    
+    // 生成日历
+    this.generateCalendar();
+    
+    // 更新患者友好视图
+    this.updatePatientFriendlyView();
   },
 
   // 生成示例EMG数据（日历格式）
@@ -378,13 +163,25 @@ Page({
       
       // 随机决定是否有数据（70%概率有数据）
       if (Math.random() > 0.3) {
-        const threshold = (Math.random() * 40 + 30).toFixed(1); // 30-70之间的随机值
+        const emgThreshold = (Math.random() * 40 + 30).toFixed(1); // 30-70之间的随机值
         const dateKey = this.formatDateKey(date);
-        data[dateKey] = parseFloat(threshold);
+        data[dateKey] = parseFloat(emgThreshold);
       }
     }
     
     return data;
+  },
+
+  // 格式化日期为（DD）
+  formatDate1(dateKey) {
+    const parts = dateKey.split('-');
+    return parts[2];  // 返回日
+  },
+
+  // 格式化日期为（MM-DD）
+  formatDate2(dateKey) {
+    const parts = dateKey.split('-');
+    return parts[1] + '-' + parts[2];  // 返回月-日
   },
 
   // 格式化日期为key（YYYY-MM-DD）
@@ -464,18 +261,7 @@ Page({
     this.setData({ calendarDays: calendarDays });
   },
 
-  // 处理EMG数据，转换为日历格式
-  processEMGData(rawData) {
-    // 保存所有原始数据
-    this.setData({ emgData: rawData });
-    this.setData({ hasData: true });
-    
-    // 生成日历
-    this.generateCalendar();
-    
-    // 更新患者友好视图
-    this.updatePatientFriendlyView();
-  },
+ 
 
   // 更新患者友好视图
   updatePatientFriendlyView() {
@@ -504,15 +290,18 @@ Page({
     }
     
     // 计算周进度
-    const weeklyValues = this.getWeeklyValues();
+    const currentDate = new Date();
+    const weeklyValues = this.getWeekData(currentDate).values;
     const weeklyAverage = weeklyValues.length > 0 ? 
-      weeklyValues.reduce((sum, val) => sum + val, 0) / weeklyValues.length : 0;
-    const completion = Math.min(100, (weeklyAverage / 50) * 100);
+      weeklyValues.reduce((sum, val) => sum + Number(val), 0) / 7 : 0; 
+      const completion = Math.min(100, (weeklyAverage / 50) * 100);
+    
     
     // 计算统计数据
     const totalTrainingDays = Object.keys(emgData).length;
     const bestValue = totalTrainingDays > 0 ? Math.max(...Object.values(emgData)).toFixed(1) : '0';
-    
+  
+   
     // 更新数据
     this.setData({
       currentStatus: {
@@ -523,35 +312,19 @@ Page({
         message: message
       },
       weeklyProgress: {
-        average: weeklyAverage,
-        target: 50,
-        completion: completion
+        average: weeklyAverage.toFixed(1),
+        target: 50, // 用户设置的目标值：默认50
+        completion: completion // 周进度完成率
       },
       totalTrainingDays: totalTrainingDays,
       bestValue: bestValue
     });
-    
+    // console.log("本周平均:",this.data.weeklyProgress)
     // 检查成就
     this.checkAchievements();
   },
 
-  // 获取本周数值
-  getWeeklyValues() {
-    const { emgData } = this.data;
-    const values = [];
-    const today = new Date();
-    
-    for (let i = 6; i >= 0; i--) {
-      const date = new Date(today);
-      date.setDate(date.getDate() - i);
-      const dateKey = this.formatDateKey(date);
-      if (emgData[dateKey] !== undefined) {
-        values.push(emgData[dateKey]);
-      }
-    }
-    
-    return values;
-  },
+
 
   // 检查成就
   checkAchievements() {
@@ -628,69 +401,35 @@ Page({
       return;
     }
     
-    // 基于选中日期计算该周的日期范围
+    // 基于选中日期计算该周的所有信息
     const selectedDate = selectedDateInfo.date;
-    const weekStart = new Date(selectedDate);
-    weekStart.setDate(selectedDate.getDate() - selectedDate.getDay()); // 设置为周日
-    
-    const weekEnd = new Date(weekStart);
-    weekEnd.setDate(weekStart.getDate() + 6); // 设置为周六
-    
-    const weekStr = `${weekStart.getMonth()+1}/${weekStart.getDate()}-${weekEnd.getMonth()+1}/${weekEnd.getDate()}`;
-    
-    // 计算该周的所有日期
-    const weekDates = [];
-    for (let i = 0; i < 7; i++) {
-      const date = new Date(weekStart);
-      date.setDate(weekStart.getDate() + i);
-      weekDates.push(this.formatDateKey(date));
-    }
+    const weekData = this.getWeekData(selectedDate);
     
     // 更新selectedDateInfo，添加周信息
     this.setData({
       selectedDateInfo: {
         ...selectedDateInfo,
-        weekStr: weekStr,
-        weekStart: weekStart,
-        weekEnd: weekEnd,
-        weekDates: weekDates
+        weekStr: weekData.weekStr,
+        weekStart: weekData.weekStart,
+        weekEnd: weekData.weekEnd,
+        weekDates: weekData.weekDates
       }
     });
-    // console.log('start:',weekStart,"end:",weekEnd,"weekDates:",weekDates)
+    // console.log("所选日期的周数据:",this.data.selectedDateInfo.weekDates)
     
     // 延迟显示Toast，确保setData完成，使用简洁文本
     setTimeout(() => {
       wx.showToast({
-        title: `${weekStr}`,
+        title: `${weekData.weekStr}`,
         icon: 'success',
         duration: 2000
       });
-    }, 50);
+    }, 500);
     
-    // 跳转到周图表页面
-    this.navigateToWeekChart(weekStr);
+    // 显示周数据弹窗图表
+    this.showWeekChartModal();
   },
 
-  // 跳转到周图表页面
-  navigateToWeekChart(weekStr) {
-    wx.navigateTo({
-      url: `/pages/week-chart/week-chart?week=${encodeURIComponent(weekStr)}`,
-      success: () => {
-        wx.showToast({
-          title: '跳转到周图表',
-          icon: 'success',
-          duration: 1500
-        });
-      },
-      fail: () => {
-        wx.showToast({
-          title: '页面开发中',
-          icon: 'none',
-          duration: 2000
-        });
-      }
-    });
-  },
 
   // 选择月
   selectMonth() {
@@ -707,7 +446,7 @@ Page({
     
     // 基于选中日期计算该月
     const selectedDate = selectedDateInfo.date;
-    const monthStr = `${selectedDate.getFullYear()}年${selectedDate.getMonth() + 1}月`;
+    const monthStr = `${selectedDate.getMonth() + 1}月`;
     
     // 计算该月的所有日期
     const monthDates = [];
@@ -737,239 +476,16 @@ Page({
         icon: 'success',
         duration: 2000
       });
-    }, 50);
+    }, 500);
     
-    // 跳转到月图表页面
-    this.navigateToMonthChart(monthStr);
+    // 显示月数据弹窗图表
+    this.showMonthChartModal();
   },
 
-  // 跳转到周图表页面
-  navigateToWeekChart(weekStr) {
-    wx.navigateTo({
-      url: `/pages/week-chart/week-chart?week=${encodeURIComponent(weekStr)}`,
-      success: () => {
-        wx.showToast({
-          title: '跳转到周图表',
-          icon: 'success',
-          duration: 1500
-        });
-      },
-      fail: () => {
-        wx.showToast({
-          title: '页面开发中',
-          icon: 'none',
-          duration: 2000
-        });
-      }
-    });
-  },
 
-  // 跳转到月图表页面
-  navigateToMonthChart(monthStr) {
-    wx.navigateTo({
-      url: `/pages/month-chart/month-chart?month=${encodeURIComponent(monthStr)}`,
-      success: () => {
-        wx.showToast({
-          title: '跳转到月图表',
-          icon: 'success',
-          duration: 1500
-        });
-      },
-      fail: () => {
-        wx.showToast({
-          title: '页面开发中',
-          icon: 'none',
-          duration: 2000
-        });
-      }
-    });
-  },
 
-  // 更新当前页面的数据
-  updateCurrentPageData() {
-    const { emgData, currentPageIndex, pageSize } = this.data;
-    
-    if (!emgData || emgData.length === 0) {
-      this.setData({ chartDates: [], chartValues: [] });
-      return;
-    }
-    
-    // 计算当前页的数据范围
-    const startIndex = currentPageIndex * pageSize;
-    const endIndex = Math.min(startIndex + pageSize, emgData.length);
-    const pageData = emgData.slice(startIndex, endIndex);
-    
-    const dates = [];
-    const values = [];
-    
-    pageData.forEach(item => {
-      if (item.threshold && item.timestamp) {
-        const date = new Date(item.timestamp);
-        const dateStr = `${date.getMonth()+1}/${date.getDate()}`;
-        dates.push(dateStr);
-        values.push(parseFloat(item.threshold));
-      }
-    });
 
-    this.setData({ 
-      chartDates: dates,
-      chartValues: values
-    });
-    
-    // 更新图表
-    this.updateChart(dates, values);
-  },
 
-  // 更新图表数据
-  updateChart(dates, values) {
-    console.log('updateChart被调用:', { 
-      dates: dates ? dates.length : 0, 
-      values: values ? values.length : 0,
-      hasData: this.data.hasData,
-      showCanvas: this.data.showCanvas
-    });
-    
-    if (!dates || !values || dates.length === 0) {
-      console.log('updateChart: 数据为空，跳过绘制');
-      return;
-    }
-    
-    // 检查canvas是否应该显示
-    if (!this.data.hasData || !this.data.showCanvas) {
-      console.log('Canvas不应该显示，跳过绘制');
-      return;
-    }
-    
-    // 检查canvas尺寸是否已设置
-    if (this.data.canvasWidth === 0 || this.data.canvasHeight === 0 || isNaN(this.data.canvasWidth) || isNaN(this.data.canvasHeight)) {
-      console.log('Canvas尺寸未设置或无效，先初始化');
-      
-      // 检查重试次数
-      if (this._canvasInitRetryCount >= this._maxRetryCount) {
-        console.log('Canvas初始化重试次数超限，使用强制默认尺寸');
-        const dpr = 1; // 使用默认像素比
-        const canvasWidth = 350 * dpr;
-        const canvasHeight = 400 * dpr;
-        
-        this.setData({
-          canvasWidth: canvasWidth,
-          canvasHeight: canvasHeight
-        });
-        
-        // 继续绘制
-        this._drawChartDirectly(dates, values, canvasWidth, canvasHeight, dpr);
-        return;
-      }
-      
-      this._canvasInitRetryCount++;
-      this.initCanvasSize();
-      // 延迟重试
-      setTimeout(() => {
-        this.updateChart(dates, values);
-      }, 500);
-      return;
-    }
-    
-    // 使用原生canvas绘制图表
-    const query = wx.createSelectorQuery();
-    query.select('#chart-canvas').fields({ node: true, size: true }).exec((res) => {
-      console.log('canvas查询结果:', res);
-      
-      if (res && res[0] && res[0].node) {
-        const canvas = res[0].node;
-        const ctx = canvas.getContext('2d');
-        
-        if (!ctx) {
-          console.error('无法获取canvas context');
-          return;
-        }
-        
-        // 设置canvas尺寸
-        let dpr = 1;
-        try {
-          const deviceInfo = wx.getDeviceInfo();
-          dpr = deviceInfo.pixelRatio || 1;
-        } catch (e) {
-          console.log('获取设备像素比失败，使用默认值1');
-          dpr = 1;
-        }
-        
-        let canvasWidth = this.data.canvasWidth;
-        let canvasHeight = this.data.canvasHeight;
-        
-        // 如果尺寸仍然为0或NaN，强制设置默认尺寸
-        if (canvasWidth === 0 || canvasHeight === 0 || isNaN(canvasWidth) || isNaN(canvasHeight)) {
-          canvasWidth = 350 * dpr;
-          canvasHeight = 400 * dpr;
-          console.log('强制设置默认canvas尺寸:', { canvasWidth, canvasHeight, dpr });
-        }
-        
-        canvas.width = canvasWidth;
-        canvas.height = canvasHeight;
-        ctx.scale(dpr, dpr);
-        
-        // 计算显示尺寸（逻辑像素）
-        const displayWidth = canvasWidth / dpr;
-        const displayHeight = canvasHeight / dpr;
-        
-        console.log('开始绘制图表:', {
-          canvasWidth: canvasWidth,
-          canvasHeight: canvasHeight,
-          dpr: dpr,
-          dates: dates.length,
-          values: values.length,
-          displayWidth: displayWidth,
-          displayHeight: displayHeight
-        });
-        
-        // 绘制图表（使用显示尺寸）
-        drawChart(ctx, dates, values, displayWidth, displayHeight);
-      } else {
-        console.error('canvas元素未找到或无效:', res);
-      }
-    });
-  },
-
-  // 直接绘制图表的辅助函数
-  _drawChartDirectly(dates, values, canvasWidth, canvasHeight, dpr) {
-    const query = wx.createSelectorQuery();
-    query.select('#chart-canvas').fields({ node: true, size: true }).exec((res) => {
-      console.log('直接绘制canvas查询结果:', res);
-      
-      if (res && res[0] && res[0].node) {
-        const canvas = res[0].node;
-        const ctx = canvas.getContext('2d');
-        
-        if (!ctx) {
-          console.error('无法获取canvas context');
-          return;
-        }
-        
-        canvas.width = canvasWidth;
-        canvas.height = canvasHeight;
-        ctx.scale(dpr, dpr);
-        
-        // 计算显示尺寸（逻辑像素）
-        const displayWidth = canvasWidth / dpr;
-        const displayHeight = canvasHeight / dpr;
-        
-        console.log('直接绘制图表:', {
-          canvasWidth: canvasWidth,
-          canvasHeight: canvasHeight,
-          dpr: dpr,
-          dates: dates.length,
-          values: values.length,
-          displayWidth: displayWidth,
-          displayHeight: displayHeight
-        });
-        
-        // 绘制图表（使用显示尺寸）
-        drawChart(ctx, dates, values, displayWidth, displayHeight);
-      } else {
-        console.error('直接绘制时canvas元素未找到:', res);
-      }
-    });
-  },
 
   // 日历月份切换 - 上一月
   goToPreviousMonth() {
@@ -1098,65 +614,35 @@ Page({
     this.loadEMGData();
   },
 
-  // 图表初始化完成回调（不再需要）
-  onChartInit(e) {
-    console.log('图表初始化完成');
-    // 如果有数据，立即更新图表
-    if (this.data.chartDates.length > 0) {
-      this.updateChart(this.data.chartDates, this.data.chartValues);
-    }
-  },
-
-  // 测试绘制功能（用于调试）
-  testDrawChart() {
-    console.log('测试绘制功能');
-    const query = wx.createSelectorQuery();
-    query.select('#chart-canvas').fields({ node: true, size: true }).exec((res) => {
-      if (res && res[0] && res[0].node) {
-        const canvas = res[0].node;
-        const ctx = canvas.getContext('2d');
-        
-        if (!ctx) {
-          console.error('无法获取canvas context');
-          return;
-        }
-        
-        // 使用固定尺寸测试
-        const testWidth = 350;
-        const testHeight = 400;
-        canvas.width = testWidth;
-        canvas.height = testHeight;
-        
-        console.log('测试绘制:', { testWidth, testHeight });
-        
-        // 测试数据
-        const testDates = ['1/1', '1/2', '1/3', '1/4', '1/5'];
-        const testValues = [45, 52, 48, 55, 50];
-        
-        // 直接绘制测试图表
-        drawChart(ctx, testDates, testValues, testWidth, testHeight);
-        
-        wx.showToast({
-          title: '测试绘制完成',
-          icon: 'success'
-        });
-      } else {
-        console.error('测试绘制时canvas元素未找到');
-      }
-    });
-  },
-
-  // 生成图表数据（用于图表视图）
-  generateChartData() {
+  // 获取周数据
+  getWeekData(selectedDate) {
     const { emgData } = this.data;
     const dates = [];
     const values = [];
     
-    // 获取最近30天的数据
-    const now = new Date();
-    for (let i = 29; i >= 0; i--) {
-      const date = new Date(now);
-      date.setDate(date.getDate() - i);
+    // 计算该周的开始日期（周日）
+    const weekStart = new Date(selectedDate);
+    weekStart.setDate(selectedDate.getDate() - selectedDate.getDay());
+    
+    // 计算该周的结束日期（周六）
+    const weekEnd = new Date(weekStart);
+    weekEnd.setDate(weekStart.getDate() + 6);
+    
+    // 生成周字符串
+    const weekStr = `${weekStart.getMonth()+1}/${weekStart.getDate()}-${weekEnd.getMonth()+1}/${weekEnd.getDate()}`;
+    
+    // 生成完整的周日期数组
+    const weekDates = [];
+    for (let i = 0; i < 7; i++) {
+      const date = new Date(weekStart);
+      date.setDate(weekStart.getDate() + i);
+      weekDates.push(this.formatDateKey(date));
+    }
+    
+    // 获取该周7天的数据（仅包含有EMG数据的日期）
+    for (let i = 0; i < 7; i++) {
+      const date = new Date(weekStart);
+      date.setDate(weekStart.getDate() + i);
       const dateKey = this.formatDateKey(date);
       
       if (emgData[dateKey] !== undefined) {
@@ -1166,38 +652,639 @@ Page({
       }
     }
     
-    this.setData({ chartDates: dates, chartValues: values });
+    return { 
+      dates, 
+      values, 
+      weekStart, 
+      weekEnd, 
+      weekStr, 
+      weekDates 
+    };
+  },
+
+  // 获取月数据
+  getMonthData(selectedDate) {
+    const { emgData } = this.data;
+    const dates = [];
+    const values = [];
     
-    // 更新图表
-    if (dates.length > 0) {
-      setTimeout(() => {
-        this._canvasInitRetryCount = 0;
-        this.updateChart(dates, values);
-      }, 100);
+    // 获取该月所有有数据的日期
+    const firstDay = new Date(selectedDate.getFullYear(), selectedDate.getMonth(), 1);
+    const lastDay = new Date(selectedDate.getFullYear(), selectedDate.getMonth() + 1, 0);
+    
+    for (let day = 1; day <= lastDay.getDate(); day++) {
+      const date = new Date(selectedDate.getFullYear(), selectedDate.getMonth(), day);
+      const dateKey = this.formatDateKey(date);
+      
+      if (emgData[dateKey] !== undefined) {
+        const dateStr = `${date.getMonth()+1}/${date.getDate()}`;
+        dates.push(dateStr);
+        values.push(emgData[dateKey]);
+      }
+    }
+    
+    return { dates, values };
+  },
+
+  // 关闭图表弹窗
+  closeChartModal() {
+    console.log('关闭图表弹窗');
+    this.setData({
+      showChartModal: false,
+      modalInitialized: false,
+      chartModalData: {
+        title: '',
+        dates: [],
+        values: [],
+        type: 'line',
+        average: 0,
+        max: 0,
+        min: 0
+      },
+      // 重置交互状态
+      isScaling: false,
+      isPanning: false,
+      chartScale: 1,
+      chartPanX: 0,
+      chartPanY: 0
+    });
+  },
+
+  // 等待弹窗DOM渲染完成
+  waitForModalRender(callback) {
+    console.log('等待弹窗DOM渲染完成...');
+    
+    let retryCount = 0;
+    const maxRetries = 20; // 最多重试20次，即1秒
+    
+    const checkModal = () => {
+    const query = wx.createSelectorQuery();
+      query.select('.canvas-container').boundingClientRect((rect) => {
+        console.log('Canvas容器查询结果:', rect);
+        
+        if (rect && rect.width > 0 && rect.height > 0) {
+          console.log('Canvas容器DOM渲染完成:', rect);
+          // DOM已渲染完成，延迟一点时间确保动画完成
+          setTimeout(() => {
+            callback();
+          }, 300); // 增加延迟时间
+        } else if (retryCount < maxRetries) {
+          retryCount++;
+          console.log(`弹窗DOM未渲染完成，继续等待... (${retryCount}/${maxRetries})`);
+          // 继续等待
+          setTimeout(checkModal, 50);
+        } else {
+          console.error('弹窗DOM渲染超时，强制绘制图表');
+          callback();
+        }
+      }).exec();
+    };
+    
+    // 开始检查
+    setTimeout(checkModal, 150); // 增加初始延迟
+  },
+
+  // 计算统计数据
+  calculateStats(values) {
+    if (!values || values.length === 0) {
+      return { average: 0, max: 0, min: 0 };
+    }
+    
+    const sum = values.reduce((acc, val) => acc + val, 0);
+    const average = sum / values.length;
+    const max = Math.max(...values);
+    const min = Math.min(...values);
+    
+    return {
+      average: parseFloat(average.toFixed(1)),
+      max: parseFloat(max.toFixed(1)),
+      min: parseFloat(min.toFixed(1))
+    };
+  },
+
+  // 测试Canvas弹窗（简化版本）
+  testEChartsModal() {
+    console.log('测试Canvas弹窗');
+    
+    // 生成测试数据
+    const testDates = ['1/1', '1/2', '1/3', '1/4', '1/5', '1/6', '1/7'];
+    const testValues = [45, 52, 48, 55, 50, 47, 53];
+    const stats = this.calculateStats(testValues);
+    
+    console.log('测试数据:', { testDates, testValues, stats });
+    
+    this.setData({
+      showChartModal: true,
+      modalInitialized: false,
+      chartModalData: {
+        title: '测试图表',
+        dates: testDates,
+        values: testValues,
+        type: 'line',
+        average: stats.average,
+        max: stats.max,
+        min: stats.min
+      }
+    });
+    
+    // 等待弹窗渲染完成后绘制图表
+    this.waitForModalRender(() => {
+      this.drawNativeChart(testDates, testValues, '测试图表');
+    });
+  },
+
+  // 获取设备适配参数
+  getDeviceAdaptationParams() {
+    try {
+      // 使用新的API获取设备信息
+      const deviceInfo = wx.getDeviceInfo();
+      const windowInfo = wx.getWindowInfo();
+      const windowWidth = windowInfo?.windowWidth || 375;
+      const windowHeight = windowInfo?.windowHeight || 667;
+      const pixelRatio = deviceInfo?.pixelRatio || windowInfo?.pixelRatio || 1;
+      
+      // 计算适配比例（以iPhone 6为基准：375px）
+      const scaleRatio = windowWidth / 375;
+      
+      console.log('设备适配参数:', {
+        windowWidth,
+        windowHeight,
+        pixelRatio,
+        scaleRatio,
+        deviceInfo,
+        windowInfo
+      });
+      
+      return {
+        windowWidth,
+        windowHeight,
+        pixelRatio,
+        scaleRatio
+      };
+    } catch (error) {
+      console.error('获取设备适配参数失败:', error);
+      // 返回默认参数
+      return {
+        windowWidth: 375,
+        windowHeight: 667,
+        pixelRatio: 1,
+        scaleRatio: 1
+      };
     }
   },
 
+  // 获取Canvas备用尺寸
+  getFallbackCanvasSize() {
+    try {
+      // 使用新的API获取窗口信息
+      const windowInfo = wx.getWindowInfo();
+      const windowWidth = windowInfo?.windowWidth || 375; // 默认iPhone 6宽度
+      const windowHeight = windowInfo?.windowHeight || 667; // 默认iPhone 6高度
+      
+      // 计算弹窗的理论尺寸（弹窗占屏幕的96%，Canvas容器占弹窗的90%）
+      const modalWidth = windowWidth * 0.96;
+      const modalHeight = windowHeight * 0.88;
+      const canvasContainerWidth = modalWidth * 0.9; // 减去padding
+      const canvasContainerHeight = 550; // CSS中设置的固定高度
+      
+      console.log('备用Canvas尺寸计算:', {
+        windowWidth,
+        windowHeight,
+        modalWidth,
+        modalHeight,
+        canvasContainerWidth,
+        canvasContainerHeight
+      });
+      
+      return {
+        width: canvasContainerWidth,
+        height: canvasContainerHeight
+      };
+    } catch (error) {
+      console.error('获取备用Canvas尺寸失败:', error);
+      // 返回默认尺寸
+      return {
+        width: 600,
+        height: 400
+      };
+    }
+  },
+
+  // 原生Canvas绘制图表（完全兼容弹窗）
+  drawNativeChart(dates, values, title) {
+    console.log('开始绘制原生Canvas图表:', { datesLength: dates.length, valuesLength: values.length, title });
+    
+    const query = wx.createSelectorQuery();
+    query.select('#modalChart')
+      .fields({ node: true, size: true })
+      .exec((res) => {
+        console.log('Canvas查询结果:', res);
+        
+        if (!res || !res[0] || !res[0].node) {
+          console.error('Canvas节点未找到');
+          return;
+        }
+        
+        const canvas = res[0].node;
+        const ctx = canvas.getContext('2d');
+        
+        if (!ctx) {
+          console.error('无法获取Canvas上下文');
+          return;
+        }
+        
+        // 获取容器尺寸 - 确保获取到有效尺寸
+        let containerWidth = res[0]?.width;
+        let containerHeight = res[0]?.height;
+        
+        // 如果获取不到有效尺寸，使用备用尺寸计算
+        if (!containerWidth || containerWidth <= 0 || containerWidth === undefined) {
+          const fallbackSize = this.getFallbackCanvasSize();
+          containerWidth = fallbackSize.width;
+          console.warn('容器宽度获取失败，使用备用尺寸:', containerWidth);
+        }
+        
+        if (!containerHeight || containerHeight <= 0 || containerHeight === undefined) {
+          const fallbackSize = this.getFallbackCanvasSize();
+          containerHeight = fallbackSize.height;
+          console.warn('容器高度获取失败，使用备用尺寸:', containerHeight);
+        }
+        
+        console.log('容器尺寸:', { containerWidth, containerHeight });
+        
+        // 设置Canvas尺寸 - 充分利用容器空间
+        // 使用新的API获取设备信息
+        let deviceInfo, windowInfo, dpr;
+        try {
+          deviceInfo = wx.getDeviceInfo();
+          windowInfo = wx.getWindowInfo();
+          dpr = deviceInfo?.pixelRatio || windowInfo?.pixelRatio || 1;
+        } catch (error) {
+          console.error('获取设备信息失败:', error);
+          dpr = 1; // 使用默认像素比
+          deviceInfo = null;
+          windowInfo = null;
+        }
+        
+        console.log('设备信息:', {
+          deviceInfo,
+          windowInfo,
+          dpr,
+          containerWidth,
+          containerHeight
+        });
+        
+        // 确保Canvas尺寸与容器完全一致
+        try {
+          canvas.width = containerWidth * dpr;
+          canvas.height = containerHeight * dpr;
+          ctx.scale(dpr, dpr);
+        } catch (error) {
+          console.error('Canvas尺寸设置失败:', error);
+          // 使用备用尺寸设置
+          canvas.width = containerWidth;
+          canvas.height = containerHeight;
+          console.log('使用备用Canvas尺寸设置');
+        }
+        
+        // 验证Canvas尺寸设置是否成功
+        if (canvas.width === 0 || canvas.height === 0) {
+          console.error('Canvas尺寸设置失败:', {
+            canvasWidth: canvas.width,
+            canvasHeight: canvas.height
+          });
+          return;
+        }
+        
+        // 记录实际使用的Canvas尺寸
+        console.log('Canvas尺寸设置完成:', {
+          canvasWidth: canvas.width,
+          canvasHeight: canvas.height,
+          styleWidth: canvas.style ? canvas.style.width : 'N/A',
+          styleHeight: canvas.style ? canvas.style.height : 'N/A',
+          dpr: dpr,
+          containerWidth: containerWidth,
+          containerHeight: containerHeight
+        });
+        
+        // 清除画布 - 确保使用正确的尺寸
+        ctx.clearRect(0, 0, containerWidth, containerHeight);
+        
+        // 验证绘制参数
+        if (!containerWidth || !containerHeight || containerWidth <= 0 || containerHeight <= 0) {
+          console.error('无效的绘制参数:', { containerWidth, containerHeight });
+          return;
+        }
+        
+        // 验证Canvas是否可用
+        if (!canvas || !ctx) {
+          console.error('Canvas或Context不可用');
+          return;
+        }
+        
+        // 获取设备适配参数
+        const deviceParams = this.getDeviceAdaptationParams();
+        
+        // 绘制图表
+        this.renderChart(ctx, dates, values, title, containerWidth, containerHeight, deviceParams);
+        
+        console.log('原生Canvas图表绘制完成');
+      });
+  },
+
+  // 渲染图表内容
+  renderChart(ctx, dates, values, title, canvasWidth, canvasHeight, deviceParams = {}) {
+    // 参数验证
+    if (!dates || dates.length === 0 || !values || values.length === 0) {
+      console.log('数据为空，跳过绘制');
+      return;
+    }
+    
+    // 设置样式参数 - 优化padding以充分利用空间
+    const padding = {
+      top: Math.max(40, canvasHeight * 0.08),      // 顶部留白：容器高度的8%，最少40px
+      right: Math.max(30, canvasWidth * 0.05),     // 右侧留白：容器宽度的5%，最少30px
+      bottom: Math.max(50, canvasHeight * 0.12),   // 底部留白：容器高度的12%，最少50px
+      left: Math.max(50, canvasWidth * 0.08)       // 左侧留白：容器宽度的8%，最少50px
+    };
+    
+    const chartWidth = canvasWidth - padding.left - padding.right;
+    const chartHeight = canvasHeight - padding.top - padding.bottom;
+    
+    // 应用设备适配参数
+    const scaleRatio = deviceParams.scaleRatio || 1;
+    
+    console.log('图表绘制参数:', {
+      canvasWidth,
+      canvasHeight,
+      padding,
+      chartWidth,
+      chartHeight,
+      scaleRatio,
+      deviceParams
+    });
+    
+    // 绘制背景
+    ctx.fillStyle = '#ffffff';
+    ctx.fillRect(0, 0, canvasWidth, canvasHeight);
+    
+    // 绘制标题 - 自适应字体大小
+    const titleFontSize = Math.max(14, Math.min(18, canvasWidth * 0.03));
+    ctx.fillStyle = '#333333';
+    ctx.font = `bold ${titleFontSize}px Arial, sans-serif`;
+    ctx.textAlign = 'center';
+    ctx.fillText(title, canvasWidth / 2, padding.top * 0.6);
+    
+    // 计算数据范围
+    const minValue = Math.min(...values);
+    const maxValue = Math.max(...values);
+    const valueRange = maxValue - minValue;
+    const valuePadding = valueRange * 0.1;
+    
+    // 绘制网格线
+    ctx.strokeStyle = '#f0f0f0';
+    ctx.lineWidth = 1;
+    
+    // 水平网格线
+    for (let i = 0; i <= 5; i++) {
+      const y = padding.top + (chartHeight / 5) * i;
+      ctx.beginPath();
+      ctx.moveTo(padding.left, y);
+      ctx.lineTo(padding.left + chartWidth, y);
+      ctx.stroke();
+    }
+    
+    // 垂直网格线
+    const step = Math.max(1, Math.floor(dates.length / 8));
+    for (let i = 0; i < dates.length; i += step) {
+      const x = padding.left + (chartWidth / (dates.length - 1)) * i;
+      ctx.beginPath();
+      ctx.moveTo(x, padding.top);
+      ctx.lineTo(x, padding.top + chartHeight);
+      ctx.stroke();
+    }
+    
+    // 绘制坐标轴
+    ctx.strokeStyle = '#333333';
+    ctx.lineWidth = 2;
+    ctx.beginPath();
+    ctx.moveTo(padding.left, padding.top);
+    ctx.lineTo(padding.left, padding.top + chartHeight);
+    ctx.lineTo(padding.left + chartWidth, padding.top + chartHeight);
+    ctx.stroke();
+    
+    // 绘制Y轴标签 - 自适应字体大小
+    const labelFontSize = Math.max(10, Math.min(14, canvasWidth * 0.025));
+    ctx.fillStyle = '#666666';
+    ctx.font = `${labelFontSize}px Arial, sans-serif`;
+    ctx.textAlign = 'right';
+    ctx.textBaseline = 'middle';
+    for (let i = 0; i <= 5; i++) {
+      const value = minValue + (valueRange / 5) * i;
+      const y = padding.top + chartHeight - (chartHeight / 5) * i;
+      ctx.fillText(value.toFixed(1), padding.left - 8, y);
+    }
+    
+    // 绘制X轴标签 - 自适应字体大小
+    const xLabelFontSize = Math.max(9, Math.min(12, canvasWidth * 0.02));
+    ctx.textAlign = 'center';
+    ctx.font = `${xLabelFontSize}px Arial, sans-serif`;
+    for (let i = 0; i < dates.length; i += step) {
+      const x = padding.left + (chartWidth / (dates.length - 1)) * i;
+      ctx.fillText(dates[i], x, padding.top + chartHeight + 18);
+    }
+    
+    // 绘制Y轴标题 - 自适应字体大小
+    const axisTitleFontSize = Math.max(11, Math.min(13, canvasWidth * 0.022));
+    ctx.save();
+    ctx.translate(15, padding.top + chartHeight / 2);
+    ctx.rotate(-Math.PI / 2);
+    ctx.fillStyle = '#666666';
+    ctx.font = `${axisTitleFontSize}px Arial, sans-serif`;
+    ctx.textAlign = 'center';
+    ctx.fillText('EMG值(μV)', 0, 0);
+    ctx.restore();
+    
+    // 绘制折线图
+    if (values.length > 1) {
+      // 绘制面积
+      ctx.fillStyle = 'rgba(84, 112, 198, 0.2)';
+      ctx.beginPath();
+      ctx.moveTo(padding.left, padding.top + chartHeight);
+      
+      dates.forEach((date, index) => {
+        const x = padding.left + (chartWidth / (dates.length - 1)) * index;
+        const normalizedValue = (values[index] - minValue + valuePadding) / (valueRange + 2 * valuePadding);
+        const y = padding.top + chartHeight - normalizedValue * chartHeight;
+        ctx.lineTo(x, y);
+      });
+      
+      ctx.lineTo(padding.left + chartWidth, padding.top + chartHeight);
+      ctx.closePath();
+      ctx.fill();
+      
+      // 绘制折线 - 自适应线条粗细
+      const lineWidth = Math.max(2, Math.min(4, canvasWidth * 0.008));
+      ctx.strokeStyle = '#5470c6';
+      ctx.lineWidth = lineWidth;
+      ctx.beginPath();
+      
+      dates.forEach((date, index) => {
+        const x = padding.left + (chartWidth / (dates.length - 1)) * index;
+        const normalizedValue = (values[index] - minValue + valuePadding) / (valueRange + 2 * valuePadding);
+        const y = padding.top + chartHeight - normalizedValue * chartHeight;
+        
+        if (index === 0) {
+          ctx.moveTo(x, y);
+      } else {
+          ctx.lineTo(x, y);
+        }
+      });
+      ctx.stroke();
+      
+      // 绘制数据点 - 自适应点大小
+      const pointRadius = Math.max(4, Math.min(7, canvasWidth * 0.012));
+      const pointBorderWidth = Math.max(1.5, Math.min(3, canvasWidth * 0.005));
+      
+      ctx.fillStyle = '#5470c6';
+      dates.forEach((date, index) => {
+        const x = padding.left + (chartWidth / (dates.length - 1)) * index;
+        const normalizedValue = (values[index] - minValue + valuePadding) / (valueRange + 2 * valuePadding);
+        const y = padding.top + chartHeight - normalizedValue * chartHeight;
+        
+        ctx.beginPath();
+        ctx.arc(x, y, pointRadius, 0, 2 * Math.PI);
+        ctx.fill();
+        
+        // 数据点外圈
+        ctx.strokeStyle = '#ffffff';
+        ctx.lineWidth = pointBorderWidth;
+        ctx.stroke();
+      });
+    }
+    
+    // 绘制说明文字 - 自适应字体大小
+    // const tipFontSize = Math.max(9, Math.min(12, canvasWidth * 0.018));
+    // ctx.fillStyle = '#999999';
+    // ctx.font = `${tipFontSize}px Arial, sans-serif`;
+    // ctx.textAlign = 'left';
+    // ctx.fillText('支持手势缩放和拖拽', padding.left, canvasHeight - 8);
+  },
+  // ======== 动态移动 和 缩放 图表,查静置显示数据功能：待实现 ====
+  // // 触摸手势处理
+  // onTouchStart(e) {
+  //   const touches = e.touches;
+  //   if (touches.length === 2) {
+  //     // 双指触摸开始
+  //     const touch1 = touches[0];
+  //     const touch2 = touches[1];
+  //     const distance = this.getDistance(touch1, touch2);
+      
+  //     this.setData({
+  //       isScaling: true,
+  //       initialDistance: distance,
+  //       initialScale: this.data.chartScale || 1
+  //     });
+      
+  //     console.log('开始缩放，初始距离:', distance);
+  //   } else if (touches.length === 1) {
+  //     // 单指触摸开始
+  //     const touch = touches[0];
+  //     this.setData({
+  //       isPanning: true,
+  //       lastTouchX: touch.clientX,
+  //       lastTouchY: touch.clientY,
+  //       initialPanX: this.data.chartPanX || 0,
+  //       initialPanY: this.data.chartPanY || 0
+  //     });
+      
+  //     console.log('开始拖拽');
+  //   }
+  // },
+
+  // onTouchMove(e) {
+  //   const touches = e.touches;
+    
+  //   if (touches.length === 2 && this.data.isScaling) {
+  //     // 双指缩放
+  //     const touch1 = touches[0];
+  //     const touch2 = touches[1];
+  //     const currentDistance = this.getDistance(touch1, touch2);
+      
+  //     const scale = this.data.initialScale * (currentDistance / this.data.initialDistance);
+  //     const clampedScale = Math.max(0.5, Math.min(3, scale)); // 限制缩放范围
+      
+  //     this.setData({
+  //       chartScale: clampedScale
+  //     });
+      
+  //     // 重新绘制图表
+  //     if (this.data.chartModalData.dates.length > 0) {
+  //       this.drawNativeChart(
+  //         this.data.chartModalData.dates, 
+  //         this.data.chartModalData.values, 
+  //         this.data.chartModalData.title
+  //       );
+  //     }
+      
+  //   } else if (touches.length === 1 && this.data.isPanning) {
+  //     // 单指拖拽
+  //     const touch = touches[0];
+  //     const deltaX = touch.clientX - this.data.lastTouchX;
+  //     const deltaY = touch.clientY - this.data.lastTouchY;
+      
+  //     this.setData({
+  //       chartPanX: this.data.initialPanX + deltaX,
+  //       chartPanY: this.data.initialPanY + deltaY,
+  //       lastTouchX: touch.clientX,
+  //       lastTouchY: touch.clientY
+  //     });
+      
+  //     // 重新绘制图表
+  //     if (this.data.chartModalData.dates.length > 0) {
+  //       this.drawNativeChart(
+  //         this.data.chartModalData.dates, 
+  //         this.data.chartModalData.values, 
+  //         this.data.chartModalData.title
+  //       );
+  //     }
+  //   }
+  // },
+
+  // onTouchEnd(e) {
+  //   console.log('触摸结束');
+  //   this.setData({
+  //     isScaling: false,
+  //     isPanning: false,
+  //     initialDistance: 0,
+  //     lastTouchX: 0,
+  //     lastTouchY: 0
+  //   });
+  // },
+
+  // // 计算两点间距离
+  // getDistance(touch1, touch2) {
+  //   const dx = touch1.clientX - touch2.clientX;
+  //   const dy = touch1.clientY - touch2.clientY;
+  //   return Math.sqrt(dx * dx + dy * dy);
+  // },
+
+
+
+ 
+
   // 添加测试数据点（指定某天）
   addTestDataPoint() {
-    // 弹出选择器让用户选择日期
-    const dates = [];
-    const now = new Date();
     
-    // 生成最近30天的日期选项
-    for (let i = 29; i >= 0; i--) {
-      const date = new Date(now);
-      date.setDate(date.getDate() - i);
-      const dateKey = this.formatDateKey(date);
-      const dateStr = `${date.getMonth()+1}月${date.getDate()}日`;
-      dates.push(`${dateStr} (${dateKey})`);
-    }
     
     wx.showActionSheet({
       itemList: dates,
       success: (res) => {
-        const selectedDateStr = dates[res.tapIndex];
-        // 从字符串中提取日期key
-        const dateKey = selectedDateStr.match(/\((\d{4}-\d{2}-\d{2})\)/)[1];
+        // 根据选择的索引计算对应的日期
+        const selectedIndex = res.tapIndex;
+        const selectedDate = new Date();
+        selectedDate.setDate(selectedDate.getDate() - (29 - selectedIndex));
+        const dateKey = this.formatDateKey(selectedDate);
         this.addEMGDataForDate(dateKey);
       }
     });
@@ -1216,10 +1303,6 @@ Page({
     // 重新生成日历
     this.generateCalendar();
     
-    // 如果当前显示图表，也更新图表数据
-    if (this.data.showChart) {
-      this.generateChartData();
-    }
     
     wx.showToast({
       title: `${dateKey}: ${threshold}`,
@@ -1238,11 +1321,9 @@ Page({
           this.setData({ 
             emgData: {},
             calendarDays: [],
-            chartDates: [],
-            chartValues: [],
             hasData: false,
-            showCanvas: false,
-            selectedDate: null
+            selectedDate: null,
+            showChartModal: false
           });
           
           // 重新生成空日历
@@ -1252,9 +1333,146 @@ Page({
             title: '数据已清空',
             icon: 'success'
           });
-        }
+    }}
+  });
+  },
+
+  // ================================
+  // 弹窗图表相关函数
+  // ================================
+
+  // 显示图表弹窗
+  showChartModal(title, description, dates, values) {
+    console.log('显示图表弹窗:', { title, description, dates, values });
+    
+    // 计算统计数据
+    const stats = this.calculateStats(values);
+    
+    this.setData({
+      showChartModal: true,
+      modalInitialized: false,
+      chartModalData: {
+        title: title || 'EMG阈值趋势图',
+        dates: dates || [],
+        values: values || [],
+        type: 'line',
+        average: stats.average,
+        max: stats.max,
+        min: stats.min
+      },
+      // 重置交互状态
+      isScaling: false,
+      isPanning: false,
+      chartScale: 1,
+      chartPanX: 0,
+      chartPanY: 0
+    });
+    
+    // 等待弹窗DOM渲染完成后绘制图表
+    this.waitForModalRender(() => {
+      this.drawNativeChart(dates, values, title);
+    });
+  },
+
+
+
+  // 显示周数据弹窗图表
+  showWeekChartModal() {
+    const { selectedDateInfo } = this.data;
+    
+    if (!selectedDateInfo || !selectedDateInfo.weekDates) {
+      wx.showToast({
+        title: '请先选择一个日期',
+        icon: 'none',
+        duration: 2000
+      });
+      return;
+    }
+    
+    // 获取该周的EMG数据
+    const weekDates = selectedDateInfo.weekDates;
+    const weekValues = weekDates.map(dateKey => {
+      const value = this.data.emgData[dateKey];
+      return value !== undefined ? value : null;
+    });
+   
+    // 过滤掉没有数据的日期
+    const validDates = [];
+    const validValues = [];
+    
+    weekDates.forEach((dateKey, index) => {
+      if (weekValues[index] !== null) {
+        validDates.push(this.formatDate2(dateKey));
+        validValues.push(weekValues[index]);
       }
     });
+    
+    if (validDates.length === 0) {
+      wx.showToast({
+        title: '该周暂无训练数据',
+        icon: 'none',
+        duration: 2000
+      });
+      return;
+    }
+ 
+  
+    // 显示弹窗图表
+    this.showChartModal(
+      `周数据趋势 (${selectedDateInfo.weekStr})`,
+      `显示${selectedDateInfo.weekStr}期间的EMG阈值变化趋势，共${validDates.length}个数据点`,
+      validDates,
+      validValues
+    );
+  },
+
+  // 显示月数据弹窗图表
+  showMonthChartModal() {
+    const { selectedDateInfo } = this.data;
+    
+    if (!selectedDateInfo || !selectedDateInfo.monthDates) {
+      wx.showToast({
+        title: '请先选择一个日期',
+        icon: 'none',
+        duration: 2000
+      });
+      return;
+    }
+    
+    // 获取该月的EMG数据
+    const monthDates = selectedDateInfo.monthDates;
+    const monthValues = monthDates.map(dateKey => {
+      const value = this.data.emgData[dateKey];
+      return value !== undefined ? value : null;
+    });
+    
+    // 过滤掉没有数据的日期
+    const validDates = [];
+    const validValues = [];
+    
+    monthDates.forEach((dateKey, index) => {
+      if (monthValues[index] !== null) {
+        validDates.push(this.formatDate1(dateKey));
+        validValues.push(monthValues[index]);
+      }
+    });
+    
+    if (validDates.length === 0) {
+      wx.showToast({
+        title: '该月暂无训练数据',
+        icon: 'none',
+        duration: 2000
+      });
+      return;
+    }
+    
+    // 显示弹窗图表
+    this.showChartModal(
+      `月数据趋势 (${selectedDateInfo.year}年${selectedDateInfo.monthStr})`,
+      `显示${selectedDateInfo.monthStr}期间的EMG阈值变化趋势，共${validDates.length}个数据点`,
+      validDates,
+      validValues
+    );
   }
 });
 

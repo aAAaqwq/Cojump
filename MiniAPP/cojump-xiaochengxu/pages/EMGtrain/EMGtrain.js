@@ -84,11 +84,11 @@ storeEMGData(){
   wx.cloud.callFunction({
     name: 'setEMG',
     data: {
-      dev_id: app.globalData.deviceId,
-      openid: app.globalData.openId,
-      threshold: this.data.threshold,
-      emg_raw:[],
-      timestamp: this.formatDate(new Date()),
+      deviceId: app.globalData.deviceId,
+      openId: app.globalData.openId,
+      emgThreshold: this.data.threshold,
+      emgRaw:[],
+      recordTime: this.formatDate(new Date()),
     }
   }).then(res => {
     console.log('数据存储成功:', res);

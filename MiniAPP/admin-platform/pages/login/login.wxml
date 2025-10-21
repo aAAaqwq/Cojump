@@ -1,0 +1,88 @@
+<!--pages/login/login.wxml-->
+<view class="login-container">
+  <!-- 背景装饰 -->
+  <view class="bg-decoration">
+    <view class="circle circle-1"></view>
+    <view class="circle circle-2"></view>
+    <view class="circle circle-3"></view>
+  </view>
+
+  <!-- 登录卡片 -->
+  <view class="login-card">
+    <!-- Logo和标题区域 -->
+    <view class="header-section">
+      <view class="logo-wrapper">
+        <text class="logo-text">🔐</text>
+      </view>
+      <view class="title">管理员后台</view>
+      <view class="subtitle">Admin Dashboard</view>
+    </view>
+
+    <!-- 表单区域 -->
+    <view class="form-section">
+      <!-- 账号输入框 -->
+      <view class="input-group">
+        <view class="input-wrapper {{focusUsername ? 'focused' : ''}}">
+          <view class="input-icon">
+            <text class="icon-text">👤</text>
+          </view>
+          <input 
+            class="input-field" 
+            type="text" 
+            placeholder="请输入账号" 
+            value="{{username}}"
+            bindinput="onUsernameInput"
+            bindfocus="onUsernameFocus"
+            bindblur="onUsernameBlur"
+          />
+        </view>
+      </view>
+
+      <!-- 密码输入框 -->
+      <view class="input-group">
+        <view class="input-wrapper {{focusPassword ? 'focused' : ''}}">
+          <view class="input-icon">
+            <text class="icon-text">🔒</text>
+          </view>
+          <input 
+            class="input-field" 
+            type="{{showPassword ? 'text' : 'password'}}" 
+            placeholder="请输入密码" 
+            value="{{password}}"
+            bindinput="onPasswordInput"
+            bindfocus="onPasswordFocus"
+            bindblur="onPasswordBlur"
+          />
+          <view class="eye-icon" bindtap="togglePassword">
+            <text class="icon-text">{{showPassword ? '👁' : '🙈'}}</text>
+          </view>
+        </view>
+      </view>
+
+      <!-- 记住密码 -->
+      <view class="options-row">
+        <view class="remember-box" bindtap="toggleRemember">
+          <view class="checkbox {{rememberPassword ? 'checked' : ''}}">
+            <view class="checkbox-inner" wx:if="{{rememberPassword}}"></view>
+          </view>
+          <text class="remember-text">记住密码</text>
+        </view>
+        <text class="forgot-text" bindtap="onForgotPassword">忘记密码?</text>
+      </view>
+
+      <!-- 登录按钮 -->
+      <button class="login-btn {{loading ? 'loading' : ''}}" bindtap="onLogin" disabled="{{loading}}">
+        <text wx:if="{{!loading}}">登 录</text>
+        <view wx:else class="loading-spinner">
+          <view class="spinner"></view>
+          <text>登录中...</text>
+        </view>
+      </button>
+    </view>
+
+    <!-- 底部提示 -->
+    <view class="footer-section">
+      <text class="footer-text">© 2025 Admin Platform. All rights reserved.</text>
+    </view>
+  </view>
+</view>

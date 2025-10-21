@@ -334,12 +334,15 @@
 }
 
 .calendar-day.other-month {
-  background: #f8f9fa;
-  border-color: #e9ecef;
+  background: transparent !important;
+  border-color: transparent !important;
+  border: none !important;
+  box-shadow: none !important;
+  pointer-events: none; /* 禁止点击 */
 }
 
 .calendar-day.other-month .day-number {
-  color: #999;
+  visibility: hidden; /* 隐藏但保持空间 */
 }
 
 .calendar-day.today {
@@ -790,6 +793,18 @@
   box-shadow: 0 2rpx 8rpx rgba(0, 0, 0, 0.1);
 }
 
+.action-btn.test {
+  background: linear-gradient(135deg, #28a745, #34ce57);
+  color: white;
+  border: none;
+}
+
+.action-btn.test:active {
+  background: linear-gradient(135deg, #218838, #2db84d);
+  transform: translateY(2rpx);
+  box-shadow: 0 2rpx 8rpx rgba(40, 167, 69, 0.3);
+}
+
 .btn-icon {
   font-size: 32rpx;
 }
@@ -814,4 +829,164 @@
   border-radius: 12rpx;
   font-size: 24rpx;
   font-weight: 500;
+}
+
+/* ================================
+   图表弹窗Modal样式
+   ================================ */
+
+/* Modal弹窗容器 */
+.chart-modal {
+  z-index: 9999;
+}
+
+/* 弹窗内容容器 */
+.modal-content {
+  width: 90vw;
+  max-width: 700rpx;
+  max-height: 80vh;
+  background: linear-gradient(135deg, #ffffff 0%, #f8f9fa 100%);
+  border-radius: 24rpx;
+  box-shadow: 0 20rpx 60rpx rgba(0, 0, 0, 0.3);
+  overflow: hidden;
+  position: relative;
+}
+
+/* 弹窗头部 */
+.modal-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 32rpx 32rpx 24rpx;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+  position: relative;
+}
+
+.modal-title {
+  font-size: 32rpx;
+  font-weight: 600;
+  color: white;
+  text-shadow: 0 2rpx 4rpx rgba(0, 0, 0, 0.3);
+}
+
+.modal-close {
+  width: 48rpx;
+  height: 48rpx;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(255, 255, 255, 0.2);
+  border-radius: 50%;
+  transition: all 0.3s ease;
+}
+
+.modal-close:active {
+  background: rgba(255, 255, 255, 0.3);
+  transform: scale(0.95);
+}
+
+.close-icon {
+  font-size: 28rpx;
+  color: white;
+  font-weight: bold;
+}
+
+/* ECharts弹窗样式 */
+.chart-modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 9999;
+  padding: 40rpx;
+  pointer-events: auto;
+}
+
+.chart-modal-content {
+  background: #ffffff;
+  border-radius: 24rpx;
+  width: 96%;
+  max-width: 800rpx;
+  max-height: 88%;
+  overflow: hidden;
+  box-shadow: 0 20rpx 60rpx rgba(0, 0, 0, 0.3);
+  animation: modalSlideIn 0.3s ease-out;
+  position: relative;
+  z-index: 10000;
+  pointer-events: auto;
+  display: flex;
+  flex-direction: column;
+}
+
+@keyframes modalSlideIn {
+  from {
+    opacity: 0;
+    transform: scale(0.8) translateY(-50rpx);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+  }
+}
+
+/* Canvas图表容器 - 优化空间利用 */
+.canvas-container {
+  padding: 16rpx;
+  background: #ffffff;
+  height: 550rpx;
+  width: 100%;
+  box-sizing: border-box;
+  position: relative;
+  overflow: hidden;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.modal-chart-canvas {
+  width: 100% !important;
+  height: 100% !important;
+  border-radius: 12rpx;
+  box-shadow: 0 8rpx 24rpx rgba(0, 0, 0, 0.1);
+  background: #ffffff;
+  display: block;
+  max-width: 100%;
+  max-height: 100%;
+}
+
+/* 图表信息 */
+.chart-info {
+  padding: 24rpx 32rpx 32rpx;
+  background: #f8f9fa;
+  border-top: 1rpx solid #e9ecef;
+}
+
+.chart-description {
+  font-size: 28rpx;
+  color: #495057;
+  line-height: 1.6;
+  margin-bottom: 20rpx;
+  display: block;
+}
+
+.chart-stats {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 16rpx;
+}
+
+.chart-stat-item {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+  padding: 12rpx 20rpx;
+  border-radius: 20rpx;
+  font-size: 24rpx;
+  font-weight: 500;
+  box-shadow: 0 4rpx 12rpx rgba(102, 126, 234, 0.3);
 }

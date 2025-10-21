@@ -1,4 +1,4 @@
-<!--EMG阈值历史趋势图-->
+<!-- EMG阈值历史趋势图 -->
 <view class="page-container">
   <!-- 顶部控制区域 -->
   <view class="control-section">
@@ -9,9 +9,7 @@
         <text class="refresh-icon">🔄</text>
       </view>
     </view>
-
   </view>
-
   <!-- 患者友好视图 -->
   <view wx:if="{{showPatientView}}" class="patient-view">
     <!-- 今日状态卡片 -->
@@ -24,13 +22,11 @@
           <text wx:elif="{{currentStatus.status === 'attention'}}" class="status-emoji">🔴</text>
         </view>
       </view>
-      
       <view class="status-content">
         <view class="main-value">
           <text class="value-number">{{currentStatus.todayValue}}</text>
           <text class="value-unit">μV</text>
         </view>
-        
         <view class="improvement">
           <text wx:if="{{currentStatus.improvement > 0}}" class="improvement-text positive">
             📈 比昨天 +{{currentStatus.improvement.toFixed(1)}}
@@ -38,17 +34,13 @@
           <text wx:elif="{{currentStatus.improvement < 0}}" class="improvement-text negative">
             📉 比昨天 {{currentStatus.improvement.toFixed(1)}}
           </text>
-          <text wx:else class="improvement-text neutral">
-            ➡️ 与昨天持平
-          </text>
+          <text wx:else class="improvement-text neutral">➡️ 与昨天持平</text>
         </view>
-        
         <view class="status-message">
           <text class="message-text">{{currentStatus.message}}</text>
         </view>
       </view>
     </view>
-
     <!-- 训练日历卡片 -->
     <view class="calendar-card">
       <!-- 日历头部 -->
@@ -58,7 +50,6 @@
           <text class="calendar-title">训练日历</text>
         </view>
       </view>
-      
       <!-- 月份导航 -->
       <view class="calendar-nav">
         <button class="nav-btn prev" bindtap="goToPreviousMonth">
@@ -72,40 +63,36 @@
           <text class="nav-icon">›</text>
         </button>
       </view>
-      
       <!-- 星期标题 -->
       <view class="weekdays-header">
-        <text wx:for="{{['日','一','二','三','四','五','六']}}" wx:key="*this" class="weekday">{{item}}</text>
+        <text wx:for="{{['日','一','二','三','四','五','六']}}" wx:key="*this" class="weekday">
+          {{item}}
+        </text>
       </view>
-      
       <!-- 日历网格 -->
       <view class="calendar-grid">
-        <view wx:for="{{calendarDays}}" 
-              wx:key="dateKey"
-              class="calendar-day {{item.isCurrentMonth ? 'current-month' : 'other-month'}} {{item.isToday ? 'today' : ''}} {{item.hasEMGData ? 'has-data' : 'no-data'}} {{item.isSelected ? 'selected' : ''}}"
-              data-datekey="{{item.dateKey}}"
-              bindtap="selectDate">
-          
-          <!-- 日期数字 -->
-          <view class="day-header">
-            <text class="day-number">{{item.date}}</text>
-            <view wx:if="{{item.isToday}}" class="today-indicator"></view>
-          </view>
-          
-          <!-- 数据指示器 -->
-          <view class="day-content">
-            <view wx:if="{{item.hasEMGData}}" class="data-indicator success">
-              <view class="indicator-dot"></view>
-              <text class="data-value">{{item.emgValue}}</text>
+        <view wx:for="{{calendarDays}}" wx:key="dateKey" class="calendar-day {{item.isCurrentMonth ? 'current-month' : 'other-month'}} {{item.isToday ? 'today' : ''}} {{item.hasEMGData ? 'has-data' : 'no-data'}} {{item.isSelected ? 'selected' : ''}}" data-datekey="{{item.dateKey}}" bindtap="selectDate">
+          <!-- 只显示当前月份的日期 -->
+          <block wx:if="{{item.isCurrentMonth}}">
+            <!-- 日期数字 -->
+            <view class="day-header">
+              <text class="day-number">{{item.date}}</text>
+              <view wx:if="{{item.isToday}}" class="today-indicator"></view>
             </view>
-            <view wx:else class="data-indicator empty">
-              <view class="indicator-dot"></view>
-              <text class="no-data-text">未训练</text>
+            <!-- 数据指示器 -->
+            <view class="day-content">
+              <view wx:if="{{item.hasEMGData}}" class="data-indicator success">
+                <view class="indicator-dot"></view>
+                <text class="data-value">{{item.emgValue}}</text>
+              </view>
+              <view wx:else class="data-indicator empty">
+                <view class="indicator-dot"></view>
+                <text class="no-data-text">未训练</text>
+              </view>
             </view>
-          </view>
+          </block>
         </view>
       </view>
-      
       <!-- 日历底部图例 -->
       <view class="calendar-legend">
         <view class="legend-item">
@@ -125,7 +112,6 @@
           <text class="legend-text">已选择</text>
         </view>
       </view>
-      
       <!-- 选中日期信息显示 -->
       <view wx:if="{{selectedDateInfo}}" class="selected-date-info">
         <view class="selected-info-header">
@@ -134,7 +120,7 @@
         <view class="selected-info-content">
           <text class="selected-date-text">{{selectedDateInfo.dateKey}}</text>
           <view wx:if="{{selectedDateInfo.hasEMGData}}" class="selected-emg-info">
-            <text class="selected-emg-value">{{selectedDateInfo.emgValue}}</text>
+            <text class="selected-emg-value">{{selectedDateInfo.emgValue}} uV</text>
           </view>
           <view wx:else class="selected-no-data">
             <text class="selected-no-data-text">无训练数据</text>
@@ -142,37 +128,32 @@
         </view>
       </view>
     </view>
-
     <!-- 历史数据查看卡片 -->
     <view class="history-card">
       <view class="history-header">
         <text class="history-title">📈 历史数据查看</text>
       </view>
-      
       <view class="history-options">
         <button class="history-btn" bindtap="selectWeek">
           <text class="btn-icon">📅</text>
-          <text class="btn-text">查看选中周</text>
+          <text class="btn-text">弹窗查看周趋势</text>
           <text class="btn-desc">基于选中日期查看该周趋势</text>
         </button>
-        
         <button class="history-btn" bindtap="selectMonth">
           <text class="btn-icon">📊</text>
-          <text class="btn-text">查看选中月</text>
+          <text class="btn-text">弹窗查看月数据</text>
           <text class="btn-desc">基于选中日期查看该月数据</text>
         </button>
       </view>
     </view>
-
     <!-- 快速统计卡片 -->
     <view class="stats-card">
       <view class="stats-header">
         <text class="stats-title">📊 快速统计</text>
       </view>
-      
       <view class="stats-grid">
         <view class="stat-item">
-          <text class="stat-value">{{weeklyProgress.average.toFixed(1)}}</text>
+          <text class="stat-value">{{weeklyProgress.average}}</text>
           <text class="stat-label">本周平均</text>
         </view>
         <view class="stat-item">
@@ -187,9 +168,8 @@
     </view>
   </view>
 
-
   <!-- 底部操作区域 -->
-  <view class="action-section">
+  <!-- <view class="action-section">
     <view class="action-buttons">
       <button class="action-btn primary" bindtap="addTestDataPoint">
         <text class="btn-icon">📈</text>
@@ -199,14 +179,36 @@
         <text class="btn-icon">🗑️</text>
         <text class="btn-text">清空所有数据</text>
       </button>
-    </view>
-    
-    <!-- 调试按钮 -->
-    <view class="debug-buttons">
-      <button class="debug-btn" bindtap="testDrawChart">
-        <text class="btn-text">测试绘制</text>
+      <button class="action-btn test" bindtap="testEChartsModal">
+        <text class="btn-icon">🧪</text>
+        <text class="btn-text">测试ECharts弹窗</text>
       </button>
+    </view>
+  </view> -->
+
+  <!-- ECharts图表弹窗Modal -->
+  <view wx:if="{{showChartModal}}" class="chart-modal-overlay">
+    <view class="chart-modal-content" catchtap="">
+      <!-- 弹窗头部 -->
+      <view class="modal-header">
+        <text class="modal-title">{{chartModalData.title}}</text>
+        <view class="modal-close" bindtap="closeChartModal">
+          <text class="close-icon">✕</text>
+        </view>
+      </view>
+      <!-- 原生Canvas图表容器 -->
+      <view class="canvas-container">
+        <canvas id="modalChart" canvas-id="modalChart" type="2d" class="modal-chart-canvas" style="width: 100%; height: 100%; display: block;" bindtouchstart="onTouchStart" bindtouchmove="onTouchMove" bindtouchend="onTouchEnd" bindtouchcancel="onTouchEnd"></canvas>
+      </view>
+      <!-- 图表说明 -->
+      <view class="chart-info">
+        <view class="chart-stats">
+          <text class="chart-stat-item">数据点数: {{chartModalData.dates.length}}</text>
+          <text class="chart-stat-item">平均值: {{chartModalData.average}}</text>
+          <text class="chart-stat-item">最高值: {{chartModalData.max}}</text>
+          <text class="chart-stat-item">最低值: {{chartModalData.min}}</text>
+        </view>
+      </view>
     </view>
   </view>
 </view>
-

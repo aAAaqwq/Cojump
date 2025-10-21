@@ -1,0 +1,256 @@
+<!--pages/home/home.wxml - 管理员用户管理页面-->
+<view class="admin-container">
+  <!-- 页面标题区域 -->
+  <view class="admin-header">
+    <view class="header-content">
+      <view class="header-title">
+        <text class="title-main">🏥 患者康复数据管理中心</text>
+        <text class="title-sub">Patient Rehabilitation Data Management Center</text>
+      </view>
+      <view class="header-stats">
+        <view class="stat-item">
+          <text class="stat-number">{{totalRecords}}</text>
+          <text class="stat-label">📊 总记录</text>
+        </view>
+        <view class="stat-item">
+          <text class="stat-number">{{todayRecords}}</text>
+          <text class="stat-label">📈 今日记录</text>
+        </view>
+        <view class="stat-item">
+          <text class="stat-number">{{activeDevices}}</text>
+          <text class="stat-label">🔄 设备</text>
+        </view>
+        <view class="stat-item">
+          <text class="stat-number">{{abnormalRecords}}</text>
+          <text class="stat-label">⚠️ 异常</text>
+        </view>
+      </view>
+    </view>
+  </view>
+
+  <!-- 搜索和筛选区域 -->
+  <view class="search-section">
+    <!-- 智能搜索框 -->
+    <view class="search-container">
+      <view class="search-input-wrapper">
+        <input 
+          class="search-input" 
+          placeholder="搜索OpenID、设备ID或时间..."
+          value="{{searchKeyword}}"
+          bindinput="onSearchInput"
+          bindconfirm="onSearch"
+        />
+        <button class="search-btn" bindtap="onSearch">搜索</button>
+        <button class="advanced-btn" bindtap="toggleAdvancedFilter">高级筛选</button>
+      </view>
+    </view>
+
+    <!-- 快速筛选 -->
+    <view class="quick-filters">
+      <view class="filter-item {{currentFilter === 'all' ? 'active' : ''}}" 
+            bindtap="setFilter" data-filter="all">全部</view>
+      <view class="filter-item {{currentFilter === 'today' ? 'active' : ''}}" 
+            bindtap="setFilter" data-filter="today">今日</view>
+      <view class="filter-item {{currentFilter === 'week' ? 'active' : ''}}" 
+            bindtap="setFilter" data-filter="week">本周</view>
+      <view class="filter-item {{currentFilter === 'month' ? 'active' : ''}}" 
+            bindtap="setFilter" data-filter="month">本月</view>
+      <view class="filter-item {{currentFilter === 'abnormal' ? 'active' : ''}}" 
+            bindtap="setFilter" data-filter="abnormal">异常数据</view>
+    </view>
+
+    <!-- 排序控制 -->
+    <view class="sort-controls">
+      <text class="sort-label">排序:</text>
+      <view class="sort-item {{sortBy === 'recordTime' ? 'active' : ''}}" 
+            bindtap="setSort" data-field="recordTime">记录时间</view>
+      <view class="sort-item {{sortBy === 'emgThreshold' ? 'active' : ''}}" 
+            bindtap="setSort" data-field="emgThreshold">EMG阈值</view>
+      <view class="sort-item {{sortBy === 'deviceId' ? 'active' : ''}}" 
+            bindtap="setSort" data-field="deviceId">设备ID</view>
+    </view>
+  </view>
+
+  <!-- 高级筛选弹窗 -->
+  <view class="modal" wx:if="{{showAdvancedFilter}}" bindtap="hideAdvancedFilter">
+    <view class="modal-content advanced-filter-modal" catchtap="stopPropagation">
+      <view class="modal-header">
+        <text class="modal-title">🔧 高级筛选</text>
+        <button class="modal-close" bindtap="hideAdvancedFilter">×</button>
+      </view>
+      
+      <view class="modal-body">
+        <!-- OpenID筛选 -->
+        <view class="filter-group">
+          <text class="filter-label">OpenID</text>
+          <input class="filter-input" placeholder="输入OpenID" 
+                 value="{{advancedFilters.openid}}" 
+                 bindinput="onFilterInput" data-field="openid"/>
+        </view>
+
+        <!-- 设备ID筛选 -->
+        <view class="filter-group">
+          <text class="filter-label">设备ID</text>
+          <input class="filter-input" placeholder="输入设备ID" 
+                 value="{{advancedFilters.deviceId}}" 
+                 bindinput="onFilterInput" data-field="deviceId"/>
+        </view>
+
+        <!-- 时间范围筛选 -->
+        <view class="filter-group">
+          <text class="filter-label">时间范围</text>
+          <view class="time-range">
+            <input class="time-input" type="date" 
+                   value="{{advancedFilters.startTime}}" 
+                   bindinput="onFilterInput" data-field="startTime"/>
+            <text class="time-separator">至</text>
+            <input class="time-input" type="date" 
+                   value="{{advancedFilters.endTime}}" 
+                   bindinput="onFilterInput" data-field="endTime"/>
+          </view>
+        </view>
+
+        <!-- EMG阈值范围 -->
+        <view class="filter-group">
+          <text class="filter-label">EMG阈值范围</text>
+          <view class="range-inputs">
+            <input class="range-input" type="number" placeholder="最小值" 
+                   value="{{advancedFilters.minEmg}}" 
+                   bindinput="onFilterInput" data-field="minEmg"/>
+            <text class="range-separator">-</text>
+            <input class="range-input" type="number" placeholder="最大值" 
+                   value="{{advancedFilters.maxEmg}}" 
+                   bindinput="onFilterInput" data-field="maxEmg"/>
+          </view>
+        </view>
+
+        <!-- 数据质量筛选 -->
+        <view class="filter-group">
+          <text class="filter-label">数据质量</text>
+          <view class="quality-options">
+            <view class="quality-item {{advancedFilters.quality === 'all' ? 'active' : ''}}" 
+                  bindtap="setQuality" data-quality="all">全部</view>
+            <view class="quality-item {{advancedFilters.quality === 'excellent' ? 'active' : ''}}" 
+                  bindtap="setQuality" data-quality="excellent">优秀</view>
+            <view class="quality-item {{advancedFilters.quality === 'good' ? 'active' : ''}}" 
+                  bindtap="setQuality" data-quality="good">良好</view>
+            <view class="quality-item {{advancedFilters.quality === 'poor' ? 'active' : ''}}" 
+                  bindtap="setQuality" data-quality="poor">需关注</view>
+          </view>
+        </view>
+      </view>
+
+      <view class="modal-footer">
+        <button class="modal-btn cancel-btn" bindtap="resetFilters">重置</button>
+        <button class="modal-btn apply-btn" bindtap="applyAdvancedFilter">应用筛选</button>
+      </view>
+    </view>
+  </view>
+
+  <!-- 数据表格区域（支持滚动） -->
+  <view class="table-container">
+    <view class="table-wrapper">
+      <!-- 表格头部 -->
+      <view class="table-header">
+        <view class="table-row">
+          <view class="table-cell header-cell">OpenID</view>
+          <view class="table-cell header-cell">EMG阈值</view>
+          <view class="table-cell header-cell">记录时间</view>
+          <view class="table-cell header-cell">设备ID</view>
+          <view class="table-cell header-cell">操作</view>
+        </view>
+      </view>
+
+      <!-- 表格内容 -->
+      <view class="table-body">
+        <view class="table-row" wx:for="{{dataList}}" wx:key="index">
+          <view class="table-cell openid-cell">
+            <text class="openid-text">{{item.openId}}</text>
+          </view>
+          <view class="table-cell emg-cell">
+            <view class="emg-badge {{getEmgClass(item.emgThreshold)}}">
+              <text class="emg-value">{{item.emgThreshold}}</text>
+            </view>
+          </view>
+          <view class="table-cell time-cell">
+            <text class="time-text">{{item.recordTime}}</text>
+          </view>
+          <view class="table-cell device-cell">
+            <text class="device-text">{{item.deviceId}}</text>
+          </view>
+          <view class="table-cell action-cell">
+            <button class="delete-btn" catchtap="deleteRecord" data-item="{{item}}">删除</button>
+          </view>
+        </view>
+
+        <!-- 空状态 -->
+        <view class="empty-state" wx:if="{{dataList.length === 0}}">
+          <view class="empty-icon">
+            <text class="empty-icon-text">📊</text>
+          </view>
+          <view class="empty-text">
+            <text class="empty-title">{{searchKeyword ? '未找到相关数据' : '暂无康复数据'}}</text>
+            <text class="empty-desc">{{searchKeyword ? '请尝试其他搜索条件' : '等待数据上传或刷新页面'}}</text>
+          </view>
+        </view>
+      </view>
+    </view>
+  </view>
+
+  <!-- 分页区域 -->
+  <view class="pagination-section" wx:if="{{totalRecords > pageSize}}">
+    <view class="pagination">
+      <button class="page-btn {{currentPage <= 1 ? 'disabled' : ''}}" bindtap="prevPage" disabled="{{currentPage <= 1}}">
+        <text class="page-btn-text">上一页</text>
+      </button>
+
+      <view class="page-numbers">
+        <view class="page-number {{currentPage === page ? 'active' : ''}}" wx:for="{{pageNumbers}}" wx:key="page" bindtap="goToPage" data-page="{{page}}">
+          <text class="page-number-text">{{page}}</text>
+        </view>
+      </view>
+
+      <button class="page-btn {{currentPage >= totalPages ? 'disabled' : ''}}" bindtap="nextPage" disabled="{{currentPage >= totalPages}}">
+        <text class="page-btn-text">下一页</text>
+      </button>
+    </view>
+  </view>
+
+  <!-- 删除确认弹窗 -->
+  <view class="modal" wx:if="{{showDeleteModal}}" bindtap="hideDeleteModal">
+    <view class="modal-content" catchtap="stopPropagation">
+      <view class="modal-header">
+        <text class="modal-title">确认删除</text>
+        <button class="modal-close" bindtap="hideDeleteModal">×</button>
+      </view>
+      <view class="modal-body">
+        <view class="modal-icon">
+          <text class="modal-icon-text">⚠️</text>
+        </view>
+        <view class="modal-text">
+          <text class="modal-message">确定要删除记录吗？</text>
+          <text class="modal-warning">OpenID: {{deleteRecordInfo.openId}}</text>
+        </view>
+      </view>
+      <view class="modal-footer">
+        <button class="modal-btn cancel-btn" bindtap="hideDeleteModal">
+          <text class="modal-btn-text">取消</text>
+        </button>
+        <button class="modal-btn confirm-btn" bindtap="confirmDelete">
+          <text class="modal-btn-text">确定删除</text>
+        </button>
+      </view>
+    </view>
+  </view>
+
+  <!-- 加载状态 -->
+  <view class="loading-overlay" wx:if="{{loading}}">
+    <view class="loading-content">
+      <view class="loading-spinner"></view>
+      <text class="loading-text">加载中...</text>
+    </view>
+  </view>
+
+  <!-- 消息提示 -->
+  <t-toast id="t-toast" />
+</view>

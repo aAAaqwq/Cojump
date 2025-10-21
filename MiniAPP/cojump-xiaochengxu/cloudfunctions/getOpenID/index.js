@@ -10,6 +10,6 @@ exports.main = async (event, context) => {
   return {
     event,
     success:true,
-    openid: wxContext.OPENID,
+    openId: wxContext.OPENID,
   }
 }

@@ -1,0 +1,8 @@
+{
+  "navigationBarTitleText": "管理员登录",
+  "navigationBarBackgroundColor": "#667eea",
+  "navigationBarTextStyle": "white",
+  "navigationStyle": "custom",
+  "disableScroll": true,
+  "usingComponents": {}
+}
