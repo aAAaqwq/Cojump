@@ -63,11 +63,26 @@
     <view class="sort-controls">
       <text class="sort-label">排序:</text>
       <view class="sort-item {{sortBy === 'recordTime' ? 'active' : ''}}" 
-            bindtap="setSort" data-field="recordTime">记录时间</view>
+            bindtap="setSort" data-field="recordTime">
+        <text class="sort-text">记录时间</text>
+        <text class="sort-arrow" wx:if="{{sortBy === 'recordTime'}}">
+          {{sortOrder === 'asc' ? '↑' : '↓'}}
+        </text>
+      </view>
       <view class="sort-item {{sortBy === 'emgThreshold' ? 'active' : ''}}" 
-            bindtap="setSort" data-field="emgThreshold">EMG阈值</view>
+            bindtap="setSort" data-field="emgThreshold">
+        <text class="sort-text">EMG阈值</text>
+        <text class="sort-arrow" wx:if="{{sortBy === 'emgThreshold'}}">
+          {{sortOrder === 'asc' ? '↑' : '↓'}}
+        </text>
+      </view>
       <view class="sort-item {{sortBy === 'deviceId' ? 'active' : ''}}" 
-            bindtap="setSort" data-field="deviceId">设备ID</view>
+            bindtap="setSort" data-field="deviceId">
+        <text class="sort-text">设备ID</text>
+        <text class="sort-arrow" wx:if="{{sortBy === 'deviceId'}}">
+          {{sortOrder === 'asc' ? '↑' : '↓'}}
+        </text>
+      </view>
     </view>
   </view>
 

@@ -143,11 +143,20 @@ Page({
     const currentSortBy = this.data.sortBy;
     const currentSortOrder = this.data.sortOrder;
     
+    console.log('排序点击:', {
+      field,
+      currentSortBy,
+      currentSortOrder
+    });
+    
     if (currentSortBy === field) {
+      // 相同字段，切换排序方向
+      const newSortOrder = currentSortOrder === 'asc' ? 'desc' : 'asc';
       this.setData({
-        sortOrder: currentSortOrder === 'asc' ? 'desc' : 'asc'
+        sortOrder: newSortOrder
       });
     } else {
+      // 不同字段，切换到新字段并设置默认排序方向
       this.setData({
         sortBy: field,
         sortOrder: 'desc'
