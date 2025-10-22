@@ -38,26 +38,72 @@
         </view>
       </view>
 
-      <!-- 密码输入框 -->
-      <view class="input-group">
-        <view class="input-wrapper {{focusPassword ? 'focused' : ''}}">
-          <view class="input-icon">
-            <text class="icon-text">🔒</text>
-          </view>
-          <input 
-            class="input-field" 
-            type="{{showPassword ? 'text' : 'password'}}" 
-            placeholder="请输入密码" 
-            value="{{password}}"
-            bindinput="onPasswordInput"
-            bindfocus="onPasswordFocus"
-            bindblur="onPasswordBlur"
-          />
-          <view class="eye-icon" bindtap="togglePassword">
-            <text class="icon-text">{{showPassword ? '👁' : '🙈'}}</text>
-          </view>
-        </view>
-      </view>
+       <!-- 密码输入框 - 平台兼容方案 -->
+       <view class="input-group">
+         <view class="input-wrapper {{focusPassword ? 'focused' : ''}}">
+           <view class="input-icon">
+             <text class="icon-text">🔒</text>
+           </view>
+           <!-- 安卓平台：使用双input切换 -->
+           <view wx:if="{{isAndroid}}" class="password-input-container">
+             <!-- 隐藏密码的input -->
+             <input 
+               wx:if="{{!showPassword}}"
+               class="input-field" 
+               type="password" 
+               placeholder="请输入密码" 
+               value="{{password}}"
+               bindinput="onPasswordInput"
+               bindfocus="onPasswordFocus"
+               bindblur="onPasswordBlur"
+               id="passwordInput"
+             />
+             <!-- 显示密码的input -->
+             <input 
+               wx:else
+               class="input-field" 
+               type="text" 
+               placeholder="请输入密码" 
+               value="{{password}}"
+               bindinput="onPasswordInput"
+               bindfocus="onPasswordFocus"
+               bindblur="onPasswordBlur"
+               id="passwordInputText"
+             />
+           </view>
+           <!-- iOS平台：使用-webkit-text-security -->
+           <view wx:elif="{{isIOS}}" class="password-input-container">
+             <input 
+               class="input-field password-input-ios {{showPassword ? 'show-password' : 'hide-password'}}" 
+               type="text" 
+               placeholder="请输入密码" 
+               value="{{password}}"
+               bindinput="onPasswordInput"
+               bindfocus="onPasswordFocus"
+               bindblur="onPasswordBlur"
+               id="passwordInputIOS"
+             />
+           </view>
+           <!-- 其他平台：使用标准方案 -->
+           <view wx:else class="password-input-container">
+             <input 
+               class="input-field" 
+               type="{{showPassword ? 'text' : 'password'}}" 
+               placeholder="请输入密码" 
+               value="{{password}}"
+               bindinput="onPasswordInput"
+               bindfocus="onPasswordFocus"
+               bindblur="onPasswordBlur"
+               id="passwordInputDefault"
+             />
+           </view>
+           <view class="eye-icon" catchtap="togglePassword">
+             <text class="icon-text password-toggle-icon {{showPassword ? 'show' : 'hide'}}">
+               {{showPassword ? '👁' : '🙈'}}
+             </text>
+           </view>
+         </view>
+       </view>
 
       <!-- 记住密码 -->
       <view class="options-row">
@@ -78,6 +124,21 @@
           <text>登录中...</text>
         </view>
       </button>
+
+      <!-- 开发工具测试按钮 -->
+      <view wx:if="{{platform === 'devtools'}}" class="debug-section">
+        <view class="debug-title">开发工具测试</view>
+        <view class="debug-info">
+          <text>当前平台: {{platform}}</text>
+          <text>检测平台: {{isIOS ? 'iOS' : (isAndroid ? 'Android' : 'Other')}}</text>
+          <text>设备型号: {{systemInfo.model || 'Unknown'}}</text>
+        </view>
+        <view class="debug-buttons">
+          <button class="debug-btn" bindtap="testIOSMode">测试iOS模式</button>
+          <button class="debug-btn" bindtap="testAndroidMode">测试安卓模式</button>
+          <button class="debug-btn" bindtap="resetPlatform">重置检测</button>
+        </view>
+      </view>
     </view>
 
     <!-- 底部提示 -->

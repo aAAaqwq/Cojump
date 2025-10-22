@@ -159,6 +159,8 @@
   padding: 20rpx 24rpx;
   transition: all 0.3s ease;
   border: 2rpx solid transparent;
+  position: relative;
+  overflow: hidden;
 }
 
 .input-wrapper.focused {
@@ -200,13 +202,107 @@
   color: #999;
 }
 
+/* 密码输入框容器 */
+.password-input-container {
+  flex: 1;
+  position: relative;
+  height: 44rpx;
+}
+
+/* iOS平台密码输入框样式 */
+.password-input-ios {
+  flex: 1;
+  font-size: 28rpx;
+  color: #333;
+  height: 44rpx;
+  line-height: 44rpx;
+  transition: all 0.3s ease;
+}
+
+/* iOS隐藏密码样式 */
+.password-input-ios.hide-password {
+  -webkit-text-security: disc;
+  -webkit-text-security: disc;
+}
+
+/* iOS显示密码样式 */
+.password-input-ios.show-password {
+  -webkit-text-security: none;
+  -webkit-text-security: none;
+}
+
+/* 开发工具调试样式 */
+.debug-section {
+  margin-top: 30rpx;
+  padding: 20rpx;
+  background: rgba(102, 126, 234, 0.1);
+  border-radius: 12rpx;
+  border: 1rpx solid rgba(102, 126, 234, 0.2);
+}
+
+.debug-title {
+  font-size: 28rpx;
+  font-weight: 600;
+  color: #667eea;
+  margin-bottom: 15rpx;
+  text-align: center;
+}
+
+.debug-info {
+  margin-bottom: 20rpx;
+}
+
+.debug-info text {
+  display: block;
+  font-size: 24rpx;
+  color: #666;
+  margin-bottom: 8rpx;
+  padding: 4rpx 0;
+}
+
+.debug-buttons {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 15rpx;
+  justify-content: center;
+}
+
+.debug-btn {
+  flex: 1;
+  min-width: 120rpx;
+  height: 60rpx;
+  line-height: 60rpx;
+  font-size: 24rpx;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+  border: none;
+  border-radius: 8rpx;
+  box-shadow: 0 4rpx 12rpx rgba(102, 126, 234, 0.3);
+  transition: all 0.3s ease;
+}
+
+.debug-btn:active {
+  transform: translateY(2rpx);
+  box-shadow: 0 2rpx 8rpx rgba(102, 126, 234, 0.4);
+}
+
 .eye-icon {
-  width: 50rpx;
-  height: 40rpx;
+  width: 60rpx;
+  height: 50rpx;
   display: flex;
   align-items: center;
   justify-content: center;
   margin-left: 10rpx;
+  cursor: pointer;
+  border-radius: 8rpx;
+  transition: all 0.3s ease;
+  position: relative;
+  z-index: 10;
+}
+
+.eye-icon:active {
+  background: rgba(102, 126, 234, 0.1);
+  transform: scale(0.95);
 }
 
 .eye-icon image {
@@ -215,9 +311,54 @@
   opacity: 0.6;
 }
 
-.eye-icon .icon-text {
-  font-size: 28rpx;
+.password-toggle-icon {
+  font-size: 32rpx;
   opacity: 0.8;
+  transition: all 0.3s ease;
+  display: inline-block;
+  transform-origin: center;
+}
+
+.password-toggle-icon.show {
+  opacity: 1;
+  color: #667eea;
+  animation: eyeOpen 0.3s ease-out;
+}
+
+.password-toggle-icon.hide {
+  opacity: 0.7;
+  color: #999;
+  animation: eyeClose 0.3s ease-out;
+}
+
+@keyframes eyeOpen {
+  0% {
+    transform: scale(0.8) rotate(-10deg);
+    opacity: 0.5;
+  }
+  50% {
+    transform: scale(1.1) rotate(5deg);
+    opacity: 0.8;
+  }
+  100% {
+    transform: scale(1) rotate(0deg);
+    opacity: 1;
+  }
+}
+
+@keyframes eyeClose {
+  0% {
+    transform: scale(1) rotate(0deg);
+    opacity: 1;
+  }
+  50% {
+    transform: scale(0.9) rotate(-5deg);
+    opacity: 0.6;
+  }
+  100% {
+    transform: scale(1) rotate(0deg);
+    opacity: 0.7;
+  }
 }
 
 /* 选项行 */

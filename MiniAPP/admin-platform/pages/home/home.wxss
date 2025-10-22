@@ -229,6 +229,7 @@ page {
   font-weight: 500;
   transition: all 0.3s ease;
   border: 1rpx solid #e2e8f0;
+  position: relative;
 }
 
 .sort-item.active {
@@ -236,6 +237,37 @@ page {
   color: white;
   box-shadow: 0 2rpx 8rpx rgba(37, 99, 235, 0.3);
   border-color: transparent;
+}
+
+.sort-text {
+  font-size: 24rpx;
+  font-weight: 500;
+}
+
+.sort-arrow {
+  font-size: 20rpx;
+  font-weight: 700;
+  margin-left: 4rpx;
+  opacity: 0.8;
+  transition: all 0.3s ease;
+}
+
+.sort-item.active .sort-arrow {
+  color: white;
+  opacity: 1;
+  animation: arrowPulse 0.6s ease-in-out;
+}
+
+@keyframes arrowPulse {
+  0% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.2);
+  }
+  100% {
+    transform: scale(1);
+  }
 }
 
 .search-bar {
