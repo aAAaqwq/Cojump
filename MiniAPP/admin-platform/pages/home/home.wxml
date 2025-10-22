@@ -198,21 +198,46 @@
   </view>
 
   <!-- 分页区域 -->
-  <view class="pagination-section" wx:if="{{totalPages > 1}}">
+  <view class="pagination-section" wx:if="{{showPagination}}">
     <view class="pagination">
+      <!-- 第一页按钮 -->
+      <button class="page-btn {{currentPage <= 1 ? 'disabled' : ''}}" bindtap="goToFirstPage" disabled="{{currentPage <= 1}}">
+        <text class="page-btn-text">首页</text>
+      </button>
+      
+      <!-- 上一页按钮 -->
       <button class="page-btn {{currentPage <= 1 ? 'disabled' : ''}}" bindtap="prevPage" disabled="{{currentPage <= 1}}">
         <text class="page-btn-text">上一页</text>
       </button>
 
+      <!-- 页码按钮 -->
       <view class="page-numbers">
-        <view class="page-number {{currentPage === page ? 'active' : ''}}" wx:for="{{pageNumbers}}" wx:key="page" bindtap="goToPage" data-page="{{page}}">
-          <text class="page-number-text">{{page}}</text>
+        <view 
+          class="page-number {{currentPage === item ? 'active' : ''}} {{item === '...' ? 'ellipsis' : ''}}" 
+          wx:for="{{pageNumbers}}" 
+          wx:key="index" 
+          bindtap="{{item !== '...' ? 'goToPage' : ''}}" 
+          data-page="{{item}}"
+        >
+          <text class="page-number-text">{{item}}</text>
         </view>
       </view>
 
+      <!-- 下一页按钮 -->
       <button class="page-btn {{currentPage >= totalPages ? 'disabled' : ''}}" bindtap="nextPage" disabled="{{currentPage >= totalPages}}">
         <text class="page-btn-text">下一页</text>
       </button>
+      
+      <!-- 最后一页按钮 -->
+      <button class="page-btn {{currentPage >= totalPages ? 'disabled' : ''}}" bindtap="goToLastPage" disabled="{{currentPage >= totalPages}}">
+        <text class="page-btn-text">末页</text>
+      </button>
+    </view>
+    
+    <!-- 分页信息 -->
+    <view class="pagination-info">
+      <text class="pagination-text">第 {{currentPage}} 页，共 {{totalPages}} 页，显示 {{filteredRecords}} 条记录</text>
+      <text class="pagination-debug" style="font-size: 20rpx; color: #999; display: block; margin-top: 8rpx;">页码数组: {{pageNumbers}} | 当前页: {{currentPage}} | 总页数: {{totalPages}}</text>
     </view>
   </view>
 

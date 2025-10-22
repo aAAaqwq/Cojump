@@ -30,11 +30,17 @@ exports.main = async (event, context) => {
   //To Do: 接口鉴权
 
   try {
-    // 1. 构建查询条件
-    const whereCondition = buildWhereCondition(currentFilter, searchKeyword, advancedFilters,abnormalThreshold)
-    
-    console.log('whereCondition:', whereCondition);
-    console.log('sortBy:', sortBy, 'sortOrder:', sortOrder);
+  // 1. 构建查询条件
+  const whereCondition = buildWhereCondition(currentFilter, searchKeyword, advancedFilters,abnormalThreshold)
+  
+  console.log('查询参数:', {
+    currentFilter,
+    searchKeyword,
+    advancedFilters,
+    abnormalThreshold
+  });
+  console.log('构建的查询条件:', whereCondition);
+  console.log('排序参数:', { sortBy, sortOrder });
     
     // 3. 执行数据查询
     const dataResult = await db.collection(TableName)
@@ -44,10 +50,16 @@ exports.main = async (event, context) => {
       .limit(pageSize)
       .get()
     
-    // 4. 计算统计数据
+    // 4. 计算当前查询结果的总记录数
+    const filteredCountResult = await db.collection(TableName)
+      .where(whereCondition)
+      .count()
+    
+    // 5. 计算统计数据（包含数据库总记录数）
     const statistics = await calculateStatistics(abnormalThreshold)
     
     console.log('统计数据:', statistics);
+    console.log('当前查询结果:', filteredCountResult);
     
     return {
       success: true,
@@ -59,8 +71,9 @@ exports.main = async (event, context) => {
         pagination: {
           currentPage,
           pageSize,
-          totalRecords: statistics.totalRecords,
-          totalPages: Math.ceil(statistics.totalRecords / pageSize)
+          totalRecords: statistics.totalRecords, // 使用数据库总记录数（固定值）
+          filteredRecords: filteredCountResult.total, // 当前查询结果的总数
+          totalPages: Math.ceil(filteredCountResult.total / pageSize) // 基于当前查询结果计算页数
         },
         
         // 统计信息
@@ -154,15 +167,54 @@ function buildWhereCondition(currentFilter, searchKeyword, advancedFilters, abno
     whereCondition.recordTime = db.command.and(timeConditions)
   }
   
+  // EMG阈值范围筛选 - 数据库中是字符串类型
   if (advancedFilters.minEmg || advancedFilters.maxEmg) {
+    console.log('开始处理EMG阈值筛选(字符串类型):', {
+      minEmg: advancedFilters.minEmg,
+      maxEmg: advancedFilters.maxEmg,
+      minType: typeof advancedFilters.minEmg,
+      maxType: typeof advancedFilters.maxEmg
+    });
+    
+    // 由于数据库中的EMG阈值是字符串类型，我们使用字符串比较
+    // 但需要确保字符串格式一致，以便正确比较
     const emgConditions = []
-    if (advancedFilters.minEmg) {
-      emgConditions.push(db.command.gte(parseFloat(advancedFilters.minEmg)))
+    
+    // 处理最小值 - 使用字符串比较
+    if (advancedFilters.minEmg && advancedFilters.minEmg !== '' && advancedFilters.minEmg !== null) {
+      const minValue = parseFloat(advancedFilters.minEmg)
+      if (!isNaN(minValue) && minValue >= 0) {
+        // 直接使用字符串比较，确保格式一致
+        emgConditions.push(db.command.gte(advancedFilters.minEmg))
+        console.log('添加EMG最小值条件(字符串):', advancedFilters.minEmg)
+      } else {
+        console.log('EMG最小值无效:', advancedFilters.minEmg)
+      }
     }
-    if (advancedFilters.maxEmg) {
-      emgConditions.push(db.command.lte(parseFloat(advancedFilters.maxEmg)))
+    
+    // 处理最大值 - 使用字符串比较
+    if (advancedFilters.maxEmg && advancedFilters.maxEmg !== '' && advancedFilters.maxEmg !== null) {
+      const maxValue = parseFloat(advancedFilters.maxEmg)
+      if (!isNaN(maxValue) && maxValue >= 0) {
+        // 直接使用字符串比较，确保格式一致
+        emgConditions.push(db.command.lte(advancedFilters.maxEmg))
+        console.log('添加EMG最大值条件(字符串):', advancedFilters.maxEmg)
+      } else {
+        console.log('EMG最大值无效:', advancedFilters.maxEmg)
+      }
     }
-    whereCondition.emgThreshold = db.command.and(emgConditions)
+    
+    // 应用查询条件
+    if (emgConditions.length > 0) {
+      if (emgConditions.length === 1) {
+        whereCondition.emgThreshold = emgConditions[0]
+      } else {
+        whereCondition.emgThreshold = db.command.and(emgConditions)
+      }
+      console.log('最终EMG阈值查询条件(字符串):', whereCondition.emgThreshold)
+    } else {
+      console.log('没有有效的EMG阈值条件')
+    }
   }
   
   return whereCondition

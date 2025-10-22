@@ -27,7 +27,8 @@ Page({
     dataList: [],// 显示的数据列表:openid,threshold,timestamp,dev_Id
     allData: [], // 存储所有数据，用于本地操作
     filteredData: [], // 存储筛选后的数据
-    totalRecords: 0,
+    totalRecords: 0, // 数据库总记录数（固定值）
+    filteredRecords: 0, // 当前查询结果的总数
     todayRecords: 0,
     activeDevices: 0,
     abnormalRecords: 0,
@@ -36,6 +37,8 @@ Page({
     currentPage: 1,
     pageSize: 50,
     totalPages: 0,
+    pageNumbers: [],
+    showPagination: false,
 
     // 异常参数
     abnormalThreshold: 60,
@@ -46,11 +49,17 @@ Page({
   },
 
   onLoad() {
+    console.log('页面加载，初始化分页数据');
+    this.setData({
+      currentPage: 1,
+      pageNumbers: [],
+      showPagination: false
+    });
     this.loadData();
   },
 
   onShow() {
-    this.getTabBar().init();
+    // this.getTabBar().init();
   },
 
   onPullDownRefresh() {
@@ -105,6 +114,7 @@ Page({
 
   // 应用高级筛选 - 调用后端API
   applyAdvancedFilter() {
+    console.log('应用高级筛选，当前筛选条件:', this.data.advancedFilters);
     this.setData({
       currentPage: 1,
       showAdvancedFilter: false
@@ -192,18 +202,20 @@ Page({
         
         console.log("后端返回数据:", result.result.data);
 
+
         this.setData({
           dataList, // 直接使用后端处理后的数据
-          totalRecords: statistics.totalRecords,
+          totalRecords: pagination.totalRecords, // 使用数据库总记录数（固定值）
+          filteredRecords: pagination.filteredRecords, // 当前查询结果的总数
           todayRecords: statistics.todayRecords,
           activeDevices: statistics.activeDevices,
           abnormalRecords: statistics.abnormalRecords,
-          totalPages: pagination.totalPages,
+          totalPages: pagination.totalPages, // 使用分页信息中的总页数（基于当前查询结果）
           pageLoading: false,
           loading: false
         });
-         
-        // 更新分页按钮
+          
+        // 更新分页按钮和状态
         this.updatePageNumbers();
       } else {
         throw new Error(result.result.message || '获取数据失败');
@@ -224,6 +236,12 @@ Page({
         });
       } catch (mockError) {
         console.error('模拟数据加载也失败:', mockError);
+        // 确保分页状态正确
+        this.setData({
+          pageNumbers: [],
+          showPagination: false,
+          totalPages: 0
+        });
       }
     }
   },
@@ -234,15 +252,37 @@ Page({
   // 分页相关方法
   updatePageNumbers() {
     const { currentPage, totalPages } = this.data;
-    let startPage = Math.max(1, currentPage - 2);
-    let endPage = Math.min(totalPages, currentPage + 2);
+    
+    // 如果没有数据或只有一页，不显示分页
+    if (totalPages <= 1) {
+      this.setData({ 
+        pageNumbers: [],
+        showPagination: false 
+      });
+      return;
+    }
 
-    // 调整范围确保显示5个页码
-    if (endPage - startPage < 4) {
-      if (startPage === 1) {
-        endPage = Math.min(totalPages, 5);
-      } else if (endPage === totalPages) {
-        startPage = Math.max(1, totalPages - 4);
+    const maxVisiblePages = 5; // 最多显示5个页码
+    let startPage, endPage;
+
+    if (totalPages <= maxVisiblePages) {
+      // 总页数少于等于5页，显示所有页码
+      startPage = 1;
+      endPage = totalPages;
+    } else {
+      // 总页数大于5页，智能显示页码
+      if (currentPage <= 3) {
+        // 当前页在前3页，显示前5页
+        startPage = 1;
+        endPage = maxVisiblePages;
+      } else if (currentPage >= totalPages - 2) {
+        // 当前页在后3页，显示后5页
+        startPage = totalPages - maxVisiblePages + 1;
+        endPage = totalPages;
+      } else {
+        // 当前页在中间，显示当前页前后各2页
+        startPage = currentPage - 2;
+        endPage = currentPage + 2;
       }
     }
 
@@ -251,7 +291,38 @@ Page({
       pageNumbers.push(i);
     }
 
-    this.setData({ pageNumbers });
+    // 添加省略号逻辑
+    const pageNumbersWithEllipsis = [];
+    
+    if (startPage > 1) {
+      pageNumbersWithEllipsis.push(1);
+      if (startPage > 2) {
+        pageNumbersWithEllipsis.push('...');
+      }
+    }
+    
+    pageNumbersWithEllipsis.push(...pageNumbers);
+    
+    if (endPage < totalPages) {
+      if (endPage < totalPages - 1) {
+        pageNumbersWithEllipsis.push('...');
+      }
+      pageNumbersWithEllipsis.push(totalPages);
+    }
+
+    // console.log('生成的分页数组:', pageNumbersWithEllipsis);
+
+    this.setData({ 
+      pageNumbers: pageNumbersWithEllipsis,
+      showPagination: totalPages > 1 
+    });
+    
+    console.log('分页数据已更新:', {
+      pageNumbers: this.data.pageNumbers,
+      showPagination: this.data.showPagination,
+      currentPage: this.data.currentPage,
+      totalPages: this.data.totalPages
+    });
   },
 
   prevPage() {
@@ -273,11 +344,40 @@ Page({
   },
 
   goToPage(e) {
-    const page = e.currentTarget.dataset.page;
-    this.setData({
-      currentPage: page
-    });
-    this.loadData(); // 调用后端API
+    const page = parseInt(e.currentTarget.dataset.page);
+    if (page && !isNaN(page) && page !== this.data.currentPage && page >= 1 && page <= this.data.totalPages) {
+      this.setData({
+        currentPage: page
+      });
+      this.loadData(); // 调用后端API
+    } else {
+      console.log('页面跳转条件不满足:', {
+        page,
+        isNaN: isNaN(page),
+        isCurrentPage: page === this.data.currentPage,
+        isInRange: page >= 1 && page <= this.data.totalPages
+      });
+    }
+  },
+
+  // 跳转到第一页
+  goToFirstPage() {
+    if (this.data.currentPage !== 1) {
+      this.setData({
+        currentPage: 1
+      });
+      this.loadData();
+    }
+  },
+
+  // 跳转到最后一页
+  goToLastPage() {
+    if (this.data.currentPage !== this.data.totalPages) {
+      this.setData({
+        currentPage: this.data.totalPages
+      });
+      this.loadData();
+    }
   },
 
   // 删除记录相关方法
