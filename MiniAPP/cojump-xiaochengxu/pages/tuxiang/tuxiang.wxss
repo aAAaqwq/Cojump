@@ -4,6 +4,15 @@
   flex-direction: column;
   height: 100vh;
   background-color: #f5f7fa;
+  /* 禁用页面滚动，避免Canvas定位问题 */
+  overflow: hidden;
+}
+
+/* scroll-view样式 - 解决Canvas定位问题 */
+.scroll-content {
+  height: calc(100vh - 60px); /* 减去顶部控制区域高度 */
+  width: 100%;
+  box-sizing: border-box;
 }
 
 /* 顶部控制区域 */
@@ -935,18 +944,26 @@
   }
 }
 
-/* Canvas图表容器 - 优化空间利用 */
+/* Canvas图表容器 - 根据文档优化 */
 .canvas-container {
   padding: 16rpx;
   background: #ffffff;
   height: 550rpx;
   width: 100%;
   box-sizing: border-box;
-  position: relative;
-  overflow: hidden;
-  display: flex;
-  align-items: center;
-  justify-content: center;
+  /* 关键修复：使用relative定位确保Canvas在容器内 */
+  position: relative !important;
+  /* 关键修复：使用hidden避免Canvas溢出到容器外 */
+  overflow: hidden !important;
+  /* 确保容器正确包含Canvas */
+  display: block !important;
+  /* 设置z-index确保层级正确 */
+  z-index: 1 !important;
+  /* 添加触摸事件阻止穿透 */
+  touch-action: none;
+  /* 确保样式能被computedStyle正确获取 */
+  transform: translateZ(0);
+  -webkit-transform: translateZ(0);
 }
 
 .modal-chart-canvas {
@@ -955,9 +972,21 @@
   border-radius: 12rpx;
   box-shadow: 0 8rpx 24rpx rgba(0, 0, 0, 0.1);
   background: #ffffff;
-  display: block;
+  display: block !important;
   max-width: 100%;
   max-height: 100%;
+  /* 关键修复：使用absolute定位确保Canvas在容器内 */
+  position: absolute !important;
+  top: 0 !important;
+  left: 0 !important;
+  /* iOS兼容性优化 */
+  transform: translateZ(0);
+  -webkit-transform: translateZ(0);
+  /* 确保Canvas在容器内正确显示 */
+  z-index: 2 !important;
+  /* 确保样式能被正确应用 */
+  margin: 0 !important;
+  padding: 0 !important;
 }
 
 /* 图表信息 */

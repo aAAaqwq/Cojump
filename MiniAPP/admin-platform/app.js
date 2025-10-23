@@ -11,6 +11,11 @@ globalThis.dataModel = models;
 // 接下来就可以调用 models 上的数据模型增删改查等方法了
 
 App({
+  globalData: {
+    isLogin: false,
+    userInfo: null,
+    loginTime: null,
+  },
   onLaunch: function () {},
   onShow: function () {
     updateManager();

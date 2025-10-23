@@ -105,6 +105,34 @@
          </view>
        </view>
 
+      <!-- 验证码输入框 -->
+      <view wx:if="{{showCaptcha}}" class="input-group captcha-group">
+        <view class="input-wrapper">
+          <view class="input-icon">
+            <text class="icon-text">🔢</text>
+          </view>
+          <input 
+            class="input-field captcha-input" 
+            type="text" 
+            placeholder="请输入验证码" 
+            value="{{captchaCode}}"
+            bindinput="onCaptchaInput"
+            maxlength="6"
+          />
+        </view>
+        <view class="captcha-display">
+          <view wx:if="{{!captchaLoading}}" class="captcha-number">
+            <text class="captcha-text">{{captchaImage}}</text>
+          </view>
+          <view wx:else class="captcha-loading">
+            <text>生成中...</text>
+          </view>
+          <view class="captcha-refresh" bindtap="refreshCaptcha">
+            <text class="icon-text">🔄</text>
+          </view>
+        </view>
+      </view>
+
       <!-- 记住密码 -->
       <view class="options-row">
         <view class="remember-box" bindtap="toggleRemember">

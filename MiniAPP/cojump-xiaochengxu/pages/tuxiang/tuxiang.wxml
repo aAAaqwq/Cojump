@@ -10,8 +10,10 @@
       </view>
     </view>
   </view>
-  <!-- 患者友好视图 -->
-  <view wx:if="{{showPatientView}}" class="patient-view">
+  <!-- 使用scroll-view包装滚动内容，避免Canvas定位问题 -->
+  <scroll-view scroll-y="true" class="scroll-content" enhanced="true" show-scrollbar="false">
+    <!-- 患者友好视图 -->
+    <view wx:if="{{showPatientView}}" class="patient-view">
     <!-- 今日状态卡片 -->
     <view class="status-card {{currentStatus.status}}">
       <view class="status-header">
@@ -167,6 +169,7 @@
       </view>
     </view>
   </view>
+  </scroll-view>
 
   <!-- 底部操作区域 -->
   <!-- <view class="action-section">
@@ -187,8 +190,8 @@
   </view> -->
 
   <!-- ECharts图表弹窗Modal -->
-  <view wx:if="{{showChartModal}}" class="chart-modal-overlay">
-    <view class="chart-modal-content" catchtap="">
+  <view wx:if="{{showChartModal}}" class="chart-modal-overlay" catchtouchmove="return">
+    <view class="chart-modal-content" catchtap="" catchtouchmove="return">
       <!-- 弹窗头部 -->
       <view class="modal-header">
         <text class="modal-title">{{chartModalData.title}}</text>
@@ -197,7 +200,7 @@
         </view>
       </view>
       <!-- 原生Canvas图表容器 -->
-      <view class="canvas-container">
+      <view class="canvas-container" catchtouchmove="return">
         <canvas id="modalChart" canvas-id="modalChart" type="2d" class="modal-chart-canvas" style="width: 100%; height: 100%; display: block;" bindtouchstart="onTouchStart" bindtouchmove="onTouchMove" bindtouchend="onTouchEnd" bindtouchcancel="onTouchEnd"></canvas>
       </view>
       <!-- 图表说明 -->

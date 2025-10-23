@@ -1,4 +1,5 @@
 // pages/login/login.js
+const app = getApp();
 Page({
 
   /**
@@ -15,7 +16,15 @@ Page({
     platform: '',          // 当前平台
     isIOS: false,          // 是否为iOS平台
     isAndroid: false,      // 是否为安卓平台
-    systemInfo: {}         // 系统信息
+    systemInfo: {},        // 系统信息
+    // 验证码相关
+    captchaCode: '',       // 验证码输入
+    captchaImage: '',      // 验证码图片
+    captchaId: '',         // 验证码ID
+    showCaptcha: false,    // 是否显示验证码
+    captchaLoading: false, // 验证码加载状态
+    loginAttempts: 0,      // 登录尝试次数
+    maxAttempts: 5         // 最大尝试次数（前端显示验证码的阈值）
   },
 
   /**
@@ -26,6 +35,9 @@ Page({
     this.detectPlatform();
     // 尝试从本地存储读取记住的账号密码
     this.loadRememberedAccount();
+    // wx.navigateTo({
+    //   url: '/pages/home/home'
+    // });
   },
 
   /**
@@ -123,6 +135,15 @@ Page({
   onPasswordInput(e) {
     this.setData({
       password: e.detail.value
+    });
+  },
+
+  /**
+   * 验证码输入事件
+   */
+  onCaptchaInput(e) {
+    this.setData({
+      captchaCode: e.detail.value
     });
   },
 
@@ -320,10 +341,95 @@ Page({
   },
 
   /**
+   * 生成算术验证码（更安全）
+   */
+  generateCaptcha() {
+    this.setData({ captchaLoading: true });
+    
+    try {
+      // 生成简单的算术题
+      const num1 = Math.floor(Math.random() * 10) + 1;
+      const num2 = Math.floor(Math.random() * 10) + 1;
+      const operators = ['+', '-', '×'];
+      const operator = operators[Math.floor(Math.random() * operators.length)];
+      
+      let question, answer;
+      
+      switch (operator) {
+        case '+':
+          question = `${num1} + ${num2} = ?`;
+          answer = (num1 + num2).toString();
+          break;
+        case '-':
+          // 确保结果为正数
+          const larger = Math.max(num1, num2);
+          const smaller = Math.min(num1, num2);
+          question = `${larger} - ${smaller} = ?`;
+          answer = (larger - smaller).toString();
+          break;
+        case '×':
+          question = `${num1} × ${num2} = ?`;
+          answer = (num1 * num2).toString();
+          break;
+      }
+      
+      const captchaId = Date.now().toString();
+      
+      console.log('生成算术验证码:', question, '答案:', answer);
+      
+      // 保存验证码信息
+      this.setData({
+        captchaCode: '',
+        captchaId: captchaId,
+        captchaImage: question, // 显示算术题
+        captchaLoading: false
+      });
+      
+      // 将答案存储到本地
+      wx.setStorageSync('captcha_' + captchaId, answer);
+      
+      // 5分钟后自动清除验证码
+      setTimeout(() => {
+        wx.removeStorageSync('captcha_' + captchaId);
+      }, 5 * 60 * 1000);
+      
+    } catch (error) {
+      console.error('生成验证码失败:', error);
+      this.setData({ captchaLoading: false });
+      wx.showToast({
+        title: '验证码生成失败',
+        icon: 'none',
+        duration: 2000
+      });
+    }
+  },
+
+  /**
+   * 刷新验证码
+   */
+  refreshCaptcha() {
+    this.generateCaptcha();
+  },
+
+  /**
+   * 验证验证码
+   */
+  verifyCaptcha() {
+    const { captchaCode, captchaId } = this.data;
+    
+    if (!captchaCode || !captchaId) {
+      return false;
+    }
+    
+    const storedCode = wx.getStorageSync('captcha_' + captchaId);
+    return captchaCode.toUpperCase() === storedCode;
+  },
+
+  /**
    * 登录验证
    */
   validateLogin() {
-    const { username, password } = this.data;
+    const { username, password, showCaptcha, captchaCode } = this.data;
 
     if (!username) {
       wx.showToast({
@@ -359,6 +465,29 @@ Page({
         duration: 2000
       });
       return false;
+    }
+
+    // 如果需要验证码，检查验证码
+    if (showCaptcha) {
+      if (!captchaCode) {
+        wx.showToast({
+          title: '请输入验证码',
+          icon: 'none',
+          duration: 2000
+        });
+        return false;
+      }
+
+      if (!this.verifyCaptcha()) {
+        wx.showToast({
+          title: '验证码错误',
+          icon: 'none',
+          duration: 2000
+        });
+        // 刷新验证码
+        this.refreshCaptcha();
+        return false;
+      }
     }
 
     return true;
@@ -439,6 +568,14 @@ Page({
           duration: 1500
         });
 
+        // 设置全局登录状态，优先确保 app 已定义并全局属性存在
+        app.globalData.isLogin = true;
+        app.globalData.userInfo = {
+            username: username,
+            loginTime: Date.now()
+          };
+        
+
         // 跳转到首页
         setTimeout(() => {
           wx.reLaunch({
@@ -446,7 +583,26 @@ Page({
           });
         }, 1500);
       } else {
-        throw new Error('账号或密码错误');
+        // 登录失败，增加尝试次数
+        const newAttempts = this.data.loginAttempts + 1;
+        this.setData({
+          loginAttempts: newAttempts
+        });
+        
+        // 如果尝试次数达到阈值，显示验证码
+        if (newAttempts >= this.data.maxAttempts && !this.data.showCaptcha) {
+          this.setData({
+            showCaptcha: true
+          });
+          this.generateCaptcha();
+          wx.showToast({
+            title: '多次登录失败，请输入验证码',
+            icon: 'none',
+            duration: 3000
+          });
+        }
+        
+        throw new Error(result.result.message || '账号或密码错误');
       }
 
     } catch (error) {

@@ -1,6 +1,11 @@
 const app = getApp();
 
 Page({
+  // 页面配置 - 禁用滚动避免Canvas定位问题
+  config: {
+    disableScroll: true,
+  },
+  
   onShareAppMessage: function (res) {
     return {
       title: 'EMG阈值历史趋势图',
@@ -132,7 +137,14 @@ Page({
       // 将recordTime转换为日期
       const date = new Date(item.recordTime);
       const dateKey = this.formatDateKey(date);
-      thresholdData[dateKey] = item.emgThreshold;
+      
+      // 确保 emgThreshold 转换为数字类型
+      const numericValue = parseFloat(item.emgThreshold);
+      if (!isNaN(numericValue)) {
+        thresholdData[dateKey] = numericValue;
+      } else {
+        console.warn('无效的EMG阈值数据:', item.emgThreshold, '日期:', dateKey);
+      }
     });
     return thresholdData;
   },
@@ -299,7 +311,8 @@ Page({
     
     // 计算统计数据
     const totalTrainingDays = Object.keys(emgData).length;
-    const bestValue = totalTrainingDays > 0 ? Math.max(...Object.values(emgData)).toFixed(1) : '0';
+    const bestValue = totalTrainingDays > 0 ? 
+      Math.max(...Object.values(emgData).map(val => parseFloat(val)).filter(val => !isNaN(val))).toFixed(1) : '0';
   
    
     // 更新数据
@@ -356,12 +369,15 @@ Page({
     // 检查最高值
     const values = Object.values(emgData);
     if (values.length > 0) {
-      const maxValue = Math.max(...values);
-      achievements.push({
-        icon: '🌟',
-        title: '最高记录',
-        desc: `${maxValue.toFixed(1)}μV`
-      });
+      const numericValues = values.map(val => parseFloat(val)).filter(val => !isNaN(val));
+      if (numericValues.length > 0) {
+        const maxValue = Math.max(...numericValues);
+        achievements.push({
+          icon: '🌟',
+          title: '最高记录',
+          desc: `${maxValue.toFixed(1)}μV`
+        });
+      }
     }
     
     // 检查进步最大的一天
@@ -369,10 +385,15 @@ Page({
     let maxImprovement = 0;
     let bestDay = '';
     for (let i = 1; i < dates.length; i++) {
-      const improvement = emgData[dates[i]] - emgData[dates[i-1]];
-      if (improvement > maxImprovement) {
-        maxImprovement = improvement;
-        bestDay = dates[i];
+      const currentValue = parseFloat(emgData[dates[i]]);
+      const previousValue = parseFloat(emgData[dates[i-1]]);
+      
+      if (!isNaN(currentValue) && !isNaN(previousValue)) {
+        const improvement = currentValue - previousValue;
+        if (improvement > maxImprovement) {
+          maxImprovement = improvement;
+          bestDay = dates[i];
+        }
       }
     }
     
@@ -688,7 +709,6 @@ Page({
 
   // 关闭图表弹窗
   closeChartModal() {
-    console.log('关闭图表弹窗');
     this.setData({
       showChartModal: false,
       modalInitialized: false,
@@ -712,25 +732,19 @@ Page({
 
   // 等待弹窗DOM渲染完成
   waitForModalRender(callback) {
-    console.log('等待弹窗DOM渲染完成...');
-    
     let retryCount = 0;
     const maxRetries = 20; // 最多重试20次，即1秒
     
     const checkModal = () => {
     const query = wx.createSelectorQuery();
       query.select('.canvas-container').boundingClientRect((rect) => {
-        console.log('Canvas容器查询结果:', rect);
-        
         if (rect && rect.width > 0 && rect.height > 0) {
-          console.log('Canvas容器DOM渲染完成:', rect);
           // DOM已渲染完成，延迟一点时间确保动画完成
           setTimeout(() => {
             callback();
           }, 300); // 增加延迟时间
         } else if (retryCount < maxRetries) {
           retryCount++;
-          console.log(`弹窗DOM未渲染完成，继续等待... (${retryCount}/${maxRetries})`);
           // 继续等待
           setTimeout(checkModal, 50);
         } else {
@@ -750,10 +764,22 @@ Page({
       return { average: 0, max: 0, min: 0 };
     }
     
-    const sum = values.reduce((acc, val) => acc + val, 0);
-    const average = sum / values.length;
-    const max = Math.max(...values);
-    const min = Math.min(...values);
+    // 确保所有值都是数字类型，过滤掉无效值
+    const numericValues = values
+      .map(val => {
+        const numVal = parseFloat(val);
+        return isNaN(numVal) ? null : numVal;
+      })
+      .filter(val => val !== null);
+    
+    if (numericValues.length === 0) {
+      return { average: 0, max: 0, min: 0 };
+    }
+    
+    const sum = numericValues.reduce((acc, val) => acc + val, 0);
+    const average = sum / numericValues.length;
+    const max = Math.max(...numericValues);
+    const min = Math.min(...numericValues);
     
     return {
       average: parseFloat(average.toFixed(1)),
@@ -799,27 +825,60 @@ Page({
       // 使用新的API获取设备信息
       const deviceInfo = wx.getDeviceInfo();
       const windowInfo = wx.getWindowInfo();
+      const systemInfo = wx.getSystemInfoSync();
+      
       const windowWidth = windowInfo?.windowWidth || 375;
       const windowHeight = windowInfo?.windowHeight || 667;
       const pixelRatio = deviceInfo?.pixelRatio || windowInfo?.pixelRatio || 1;
       
+      // 检测iOS设备
+      const isIOS = systemInfo.platform === 'ios';
+      const isIPhoneX = systemInfo.model && systemInfo.model.includes('iPhone X');
+      
       // 计算适配比例（以iPhone 6为基准：375px）
       const scaleRatio = windowWidth / 375;
+      
+      // iOS特殊处理 - 根据文档优化
+      const iosAdjustment = isIOS ? {
+        // iOS设备需要更保守的DPR设置，避免Canvas位置偏移
+        adjustedPixelRatio: Math.min(pixelRatio, 1.2), // 进一步限制最大DPR为1.2
+        // iOS设备不需要坐标偏移，避免位置问题
+        coordinateOffset: { x: 0, y: 0 },
+        // iOS安全区域适配
+        safeAreaInsets: {
+          top: systemInfo.safeArea?.top || 0,
+          bottom: systemInfo.safeArea?.bottom || 0,
+          left: systemInfo.safeArea?.left || 0,
+          right: systemInfo.safeArea?.right || 0
+        }
+      } : {
+        adjustedPixelRatio: Math.min(pixelRatio, 1.5), // 非iOS设备也限制最大DPR为1.5
+        coordinateOffset: { x: 0, y: 0 },
+        safeAreaInsets: { top: 0, bottom: 0, left: 0, right: 0 }
+      };
       
       console.log('设备适配参数:', {
         windowWidth,
         windowHeight,
         pixelRatio,
         scaleRatio,
+        isIOS,
+        isIPhoneX,
+        iosAdjustment,
         deviceInfo,
-        windowInfo
+        windowInfo,
+        systemInfo
       });
       
       return {
         windowWidth,
         windowHeight,
-        pixelRatio,
-        scaleRatio
+        pixelRatio: iosAdjustment.adjustedPixelRatio,
+        scaleRatio,
+        isIOS,
+        isIPhoneX,
+        coordinateOffset: iosAdjustment.coordinateOffset,
+        safeAreaInsets: iosAdjustment.safeAreaInsets
       };
     } catch (error) {
       console.error('获取设备适配参数失败:', error);
@@ -828,33 +887,44 @@ Page({
         windowWidth: 375,
         windowHeight: 667,
         pixelRatio: 1,
-        scaleRatio: 1
+        scaleRatio: 1,
+        isIOS: false,
+        isIPhoneX: false,
+        coordinateOffset: { x: 0, y: 0 },
+        safeAreaInsets: { top: 0, bottom: 0, left: 0, right: 0 }
       };
     }
   },
 
-  // 获取Canvas备用尺寸
+  // 获取Canvas备用尺寸 - iOS优化版本
   getFallbackCanvasSize() {
     try {
       // 使用新的API获取窗口信息
       const windowInfo = wx.getWindowInfo();
+      const systemInfo = wx.getSystemInfoSync();
       const windowWidth = windowInfo?.windowWidth || 375; // 默认iPhone 6宽度
       const windowHeight = windowInfo?.windowHeight || 667; // 默认iPhone 6高度
+      
+      // 检测iOS设备
+      const isIOS = systemInfo.platform === 'ios';
+      const isIPhoneX = systemInfo.model && systemInfo.model.includes('iPhone X');
       
       // 计算弹窗的理论尺寸（弹窗占屏幕的96%，Canvas容器占弹窗的90%）
       const modalWidth = windowWidth * 0.96;
       const modalHeight = windowHeight * 0.88;
-      const canvasContainerWidth = modalWidth * 0.9; // 减去padding
-      const canvasContainerHeight = 550; // CSS中设置的固定高度
       
-      console.log('备用Canvas尺寸计算:', {
-        windowWidth,
-        windowHeight,
-        modalWidth,
-        modalHeight,
-        canvasContainerWidth,
-        canvasContainerHeight
-      });
+      // iOS设备特殊处理
+      let canvasContainerWidth, canvasContainerHeight;
+      if (isIOS) {
+        // iOS设备：考虑安全区域和状态栏
+        canvasContainerWidth = modalWidth * 0.9; // 减去padding
+        canvasContainerHeight = isIPhoneX ? 500 : 550; // iPhone X系列需要调整高度
+      } else {
+        // 非iOS设备：标准处理
+        canvasContainerWidth = modalWidth * 0.9; // 减去padding
+        canvasContainerHeight = 550; // CSS中设置的固定高度
+      }
+      
       
       return {
         width: canvasContainerWidth,
@@ -870,9 +940,292 @@ Page({
     }
   },
 
+  // Canvas位置修复函数 - 修复层级问题
+  fixIOSCanvasPosition(canvas, containerWidth, containerHeight) {
+    try {
+      const systemInfo = wx.getSystemInfoSync();
+      const isIOS = systemInfo.platform === 'ios';
+      
+      
+      // 检查Canvas和style属性是否存在
+      if (!canvas) {
+        console.warn('Canvas元素不存在');
+        return;
+      }
+      
+      if (!canvas.style) {
+        console.warn('Canvas style属性不存在，尝试初始化');
+        // 在微信小程序中，Canvas的style属性可能不存在，我们通过CSS类来控制
+        canvas.className = 'modal-chart-canvas';
+        console.log('已设置Canvas className');
+        return;
+      }
+      
+      // 关键修复：确保Canvas在容器内正确定位
+      canvas.style.position = 'absolute';
+      canvas.style.left = '0px';
+      canvas.style.top = '0px';
+      canvas.style.margin = '0';
+      canvas.style.padding = '0';
+      
+      // 确保Canvas尺寸正确
+      canvas.style.width = '100%';
+      canvas.style.height = '100%';
+      canvas.style.maxWidth = '100%';
+      canvas.style.maxHeight = '100%';
+      
+      // 设置z-index确保层级正确
+      canvas.style.zIndex = '2';
+      
+      // 应用硬件加速
+      canvas.style.transform = 'translateZ(0)';
+      canvas.style.webkitTransform = 'translateZ(0)';
+      
+    } catch (error) {
+      console.error('Canvas位置修复失败:', error);
+    }
+  },
+
+  // iOS Canvas初始化优化
+  initializeIOSCanvas(canvas, ctx, containerWidth, containerHeight) {
+    try {
+      const systemInfo = wx.getSystemInfoSync();
+      const isIOS = systemInfo.platform === 'ios';
+      
+      if (isIOS) {
+        console.log('初始化iOS Canvas');
+        
+        // 保存原始变换状态
+        ctx.save();
+        
+        // 重置变换矩阵
+        ctx.setTransform(1, 0, 0, 1, 0, 0);
+        
+        // 设置Canvas原点位置
+        ctx.translate(0, 0);
+        
+        // 应用iOS特定的渲染优化
+        ctx.imageSmoothingEnabled = true;
+        ctx.imageSmoothingQuality = 'high';
+        
+      }
+    } catch (error) {
+      console.error('iOS Canvas初始化失败:', error);
+    }
+  },
+
+  // Canvas位置验证函数 - 微信小程序兼容版本
+  validateCanvasPosition(canvas, containerWidth, containerHeight) {
+    try {
+      // 微信小程序中Canvas没有getBoundingClientRect方法，使用其他方式验证
+      console.log('Canvas位置验证:', {
+        canvasDimensions: {
+          width: canvas.width,
+          height: canvas.height,
+          styleWidth: canvas.style?.width,
+          styleHeight: canvas.style?.height
+        },
+        containerDimensions: {
+          width: containerWidth,
+          height: containerHeight
+        },
+        canvasProperties: {
+          nodeType: canvas.nodeType,
+          tagName: canvas.tagName,
+          id: canvas.id,
+          className: canvas.className
+        }
+      });
+      
+      // 检查Canvas基本属性
+      if (canvas && canvas.width > 0 && canvas.height > 0) {
+        console.log('Canvas基本属性验证通过');
+        
+        // 检查Canvas尺寸是否合理 - 更严格的验证
+        const maxAllowedWidth = containerWidth * 3; // 允许最大3倍容器宽度
+        const maxAllowedHeight = containerHeight * 3; // 允许最大3倍容器高度
+        
+        if (canvas.width <= maxAllowedWidth && canvas.height <= maxAllowedHeight) {
+          return true;
+        } else {
+          console.warn('Canvas尺寸异常:', {
+            canvasWidth: canvas.width,
+            canvasHeight: canvas.height,
+            containerWidth,
+            containerHeight,
+            maxAllowedWidth,
+            maxAllowedHeight,
+            widthRatio: (canvas.width / containerWidth).toFixed(2),
+            heightRatio: (canvas.height / containerHeight).toFixed(2)
+          });
+          return false;
+        }
+      } else {
+        console.warn('Canvas基本属性验证失败');
+        return false;
+      }
+    } catch (error) {
+      console.error('Canvas位置验证出错:', error);
+      return false;
+    }
+  },
+
+  // Canvas状态检查函数 - 微信小程序专用
+  checkCanvasStatus(canvas) {
+    try {
+      console.log('Canvas状态检查:', {
+        canvasExists: !!canvas,
+        canvasType: typeof canvas,
+        canvasConstructor: canvas?.constructor?.name,
+        canvasMethods: {
+          hasGetContext: typeof canvas?.getContext === 'function',
+          hasWidth: 'width' in canvas,
+          hasHeight: 'height' in canvas,
+          hasStyle: 'style' in canvas
+        },
+        canvasValues: {
+          width: canvas?.width,
+          height: canvas?.height,
+          styleWidth: canvas?.style?.width,
+          styleHeight: canvas?.style?.height
+        }
+      });
+      
+      // 检查Canvas是否可用
+      if (canvas && typeof canvas.getContext === 'function') {
+        console.log('Canvas状态检查通过');
+        return true;
+      } else {
+        console.warn('Canvas状态检查失败');
+        return false;
+      }
+    } catch (error) {
+      console.error('Canvas状态检查出错:', error);
+      return false;
+    }
+  },
+
+  // 智能像素比计算函数
+  calculateOptimalPixelRatio(originalPixelRatio, containerWidth, containerHeight, isIOS = false) {
+    try {
+      // 基础限制
+      let maxPixelRatio = isIOS ? 1.5 : 2;
+      
+      // 根据容器尺寸动态调整
+      if (containerWidth < 200 || containerHeight < 200) {
+        // 小容器需要更低的像素比
+        maxPixelRatio = Math.min(maxPixelRatio, 1.2);
+      } else if (containerWidth > 400 || containerHeight > 400) {
+        // 大容器可以使用稍高的像素比
+        maxPixelRatio = Math.min(maxPixelRatio, 2.5);
+      }
+      
+      const optimalPixelRatio = Math.min(originalPixelRatio, maxPixelRatio);
+      
+      console.log('智能像素比计算:', {
+        原始像素比: originalPixelRatio,
+        容器宽度: containerWidth,
+        容器高度: containerHeight,
+        最大允许像素比: maxPixelRatio,
+        最终像素比: optimalPixelRatio,
+        是iOS设备: isIOS
+      });
+      
+      return optimalPixelRatio;
+    } catch (error) {
+      console.error('智能像素比计算失败:', error);
+      return Math.min(originalPixelRatio, 1.5);
+    }
+  },
+
+  // Canvas尺寸自动修复函数
+  autoFixCanvasSize(canvas, targetWidth, targetHeight, pixelRatio) {
+    try {
+      
+      // 计算合理的像素比
+      const maxAllowedRatio = Math.min(2, Math.max(1, Math.min(
+        (targetWidth * 3) / canvas.width,
+        (targetHeight * 3) / canvas.height
+      )));
+      
+      const fixedPixelRatio = Math.min(pixelRatio, maxAllowedRatio);
+      
+      // 重新设置Canvas尺寸
+      canvas.width = targetWidth * fixedPixelRatio;
+      canvas.height = targetHeight * fixedPixelRatio;
+      canvas.style.width = targetWidth + 'px';
+      canvas.style.height = targetHeight + 'px';
+      
+      
+      return true;
+    } catch (error) {
+      console.error('Canvas尺寸自动修复失败:', error);
+      return false;
+    }
+  },
+
+  // 微信小程序Canvas位置查询函数
+  queryCanvasPosition(canvasId) {
+    return new Promise((resolve, reject) => {
+      const query = wx.createSelectorQuery();
+      query.select(`#${canvasId}`)
+        .fields({
+          node: true,
+          size: true,
+          rect: true,
+          scrollOffset: true
+        })
+        .exec((res) => {
+          if (res && res[0]) {
+            console.log('Canvas位置查询结果:', res[0]);
+            resolve(res[0]);
+          } else {
+            console.warn('Canvas位置查询失败');
+            reject(new Error('Canvas位置查询失败'));
+          }
+        });
+    });
+  },
+
+  // Canvas渲染位置检测函数 - 根据文档优化
+  detectCanvasRenderPosition() {
+    try {
+      
+      // 检查Canvas是否在正确位置渲染
+      const query = wx.createSelectorQuery();
+      query.select('.canvas-container')
+        .fields({ 
+          node: true, 
+          size: true, 
+          rect: true,
+          computedStyle: ['position', 'overflow', 'zIndex', 'display'] 
+        })
+        .exec((res) => {
+          if (res && res[0]) {
+            const containerInfo = res[0];
+            const styles = containerInfo.computedStyle || {};
+            
+            
+            // 检查Canvas是否在容器内正确渲染
+            if (containerInfo.width <= 0 || containerInfo.height <= 0) {
+              console.warn('❌ Canvas容器尺寸异常');
+            }
+            
+            // 检查容器定位是否正确（computedStyle可能返回undefined，但CSS已正确设置）
+            if (styles.position !== 'relative' || styles.overflow !== 'hidden') {
+              console.log('ℹ️ Canvas容器定位通过CSS设置（computedStyle可能未正确获取）');
+            }
+          } else {
+            console.warn('❌ 无法获取Canvas容器信息');
+          }
+        });
+    } catch (error) {
+      console.error('Canvas渲染位置检测失败:', error);
+    }
+  },
+
   // 原生Canvas绘制图表（完全兼容弹窗）
   drawNativeChart(dates, values, title) {
-    console.log('开始绘制原生Canvas图表:', { datesLength: dates.length, valuesLength: values.length, title });
     
     const query = wx.createSelectorQuery();
     query.select('#modalChart')
@@ -910,41 +1263,66 @@ Page({
           console.warn('容器高度获取失败，使用备用尺寸:', containerHeight);
         }
         
-        console.log('容器尺寸:', { containerWidth, containerHeight });
+        // 考虑容器的padding，调整实际可用尺寸
+        const padding = 16; // 16rpx转换为px（假设1rpx = 0.5px）
+        const actualWidth = containerWidth - padding * 2;
+        const actualHeight = containerHeight - padding * 2;
         
-        // 设置Canvas尺寸 - 充分利用容器空间
-        // 使用新的API获取设备信息
-        let deviceInfo, windowInfo, dpr;
-        try {
-          deviceInfo = wx.getDeviceInfo();
-          windowInfo = wx.getWindowInfo();
-          dpr = deviceInfo?.pixelRatio || windowInfo?.pixelRatio || 1;
-        } catch (error) {
-          console.error('获取设备信息失败:', error);
-          dpr = 1; // 使用默认像素比
-          deviceInfo = null;
-          windowInfo = null;
-        }
         
-        console.log('设备信息:', {
-          deviceInfo,
-          windowInfo,
-          dpr,
+        // 设置Canvas尺寸 - 智能像素比优化
+        const canvasDeviceParams = this.getDeviceAdaptationParams();
+        const { pixelRatio: originalPixelRatio, isIOS, coordinateOffset } = canvasDeviceParams;
+        
+        // 使用智能像素比计算
+        const optimalPixelRatio = this.calculateOptimalPixelRatio(
+          originalPixelRatio, 
+          actualWidth, 
+          actualHeight, 
+          isIOS
+        );
+        
+        console.log('Canvas设置参数:', {
+          canvasDeviceParams,
           containerWidth,
-          containerHeight
+          containerHeight,
+          actualWidth,
+          actualHeight,
+          原始像素比: originalPixelRatio,
+          优化像素比: optimalPixelRatio,
+          isIOS
         });
         
-        // 确保Canvas尺寸与容器完全一致
+        // 使用优化后的像素比设置Canvas尺寸
         try {
-          canvas.width = containerWidth * dpr;
-          canvas.height = containerHeight * dpr;
-          ctx.scale(dpr, dpr);
+          if (isIOS) {
+            // iOS设备：使用优化后的像素比
+            canvas.width = actualWidth * optimalPixelRatio;
+            canvas.height = actualHeight * optimalPixelRatio;
+            
+            // 设置Canvas样式尺寸（显示尺寸）
+            canvas.style.width = actualWidth + 'px';
+            canvas.style.height = actualHeight + 'px';
+            
+            // 应用坐标偏移（如果需要）
+            if (coordinateOffset.x !== 0 || coordinateOffset.y !== 0) {
+              ctx.translate(coordinateOffset.x, coordinateOffset.y);
+            }
+            
+            // 应用像素比缩放
+            ctx.scale(optimalPixelRatio, optimalPixelRatio);
+          } else {
+            // 非iOS设备：使用优化后的像素比
+            canvas.width = actualWidth * optimalPixelRatio;
+            canvas.height = actualHeight * optimalPixelRatio;
+            ctx.scale(optimalPixelRatio, optimalPixelRatio);
+          }
         } catch (error) {
           console.error('Canvas尺寸设置失败:', error);
           // 使用备用尺寸设置
-          canvas.width = containerWidth;
-          canvas.height = containerHeight;
-          console.log('使用备用Canvas尺寸设置');
+          canvas.width = actualWidth;
+          canvas.height = actualHeight;
+          canvas.style.width = actualWidth + 'px';
+          canvas.style.height = actualHeight + 'px';
         }
         
         // 验证Canvas尺寸设置是否成功
@@ -956,23 +1334,19 @@ Page({
           return;
         }
         
-        // 记录实际使用的Canvas尺寸
-        console.log('Canvas尺寸设置完成:', {
-          canvasWidth: canvas.width,
-          canvasHeight: canvas.height,
-          styleWidth: canvas.style ? canvas.style.width : 'N/A',
-          styleHeight: canvas.style ? canvas.style.height : 'N/A',
-          dpr: dpr,
-          containerWidth: containerWidth,
-          containerHeight: containerHeight
-        });
+        
+        // iOS Canvas位置修复
+        this.fixIOSCanvasPosition(canvas, actualWidth, actualHeight);
+        
+        // iOS Canvas初始化优化
+        this.initializeIOSCanvas(canvas, ctx, actualWidth, actualHeight);
         
         // 清除画布 - 确保使用正确的尺寸
-        ctx.clearRect(0, 0, containerWidth, containerHeight);
+        ctx.clearRect(0, 0, actualWidth, actualHeight);
         
         // 验证绘制参数
-        if (!containerWidth || !containerHeight || containerWidth <= 0 || containerHeight <= 0) {
-          console.error('无效的绘制参数:', { containerWidth, containerHeight });
+        if (!actualWidth || !actualHeight || actualWidth <= 0 || actualHeight <= 0) {
+          console.error('无效的绘制参数:', { actualWidth, actualHeight });
           return;
         }
         
@@ -983,12 +1357,66 @@ Page({
         }
         
         // 获取设备适配参数
-        const deviceParams = this.getDeviceAdaptationParams();
+        const renderDeviceParams = this.getDeviceAdaptationParams();
         
         // 绘制图表
-        this.renderChart(ctx, dates, values, title, containerWidth, containerHeight, deviceParams);
+        this.renderChart(ctx, dates, values, title, actualWidth, actualHeight, renderDeviceParams);
         
-        console.log('原生Canvas图表绘制完成');
+        // 验证Canvas位置 - 使用微信小程序兼容的方法
+        setTimeout(() => {
+          const isValid = this.validateCanvasPosition(canvas, actualWidth, actualHeight);
+          
+          // 如果Canvas尺寸异常，尝试自动修复
+          if (!isValid) {
+            this.autoFixCanvasSize(canvas, actualWidth, actualHeight, optimalPixelRatio);
+          }
+          
+          // 额外的Canvas状态检查
+          this.checkCanvasStatus(canvas);
+          
+          // Canvas渲染位置检测
+          this.detectCanvasRenderPosition();
+          
+          // 使用微信小程序API查询Canvas位置
+          this.queryCanvasPosition('modalChart').then(positionInfo => {
+            console.log('Canvas位置信息:', positionInfo);
+          }).catch(error => {
+            console.warn('Canvas位置查询失败:', error);
+          });
+        }, 100);
+        
+        // 添加Canvas调试信息 - 层级问题诊断
+        console.log('Canvas调试信息:', {
+          canvasElement: {
+            width: canvas.width,
+            height: canvas.height,
+            styleWidth: canvas.style?.width,
+            styleHeight: canvas.style?.height,
+            position: canvas.style?.position,
+            left: canvas.style?.left,
+            top: canvas.style?.top,
+            zIndex: canvas.style?.zIndex,
+            nodeType: canvas.nodeType,
+            tagName: canvas.tagName
+          },
+          containerInfo: {
+            containerWidth,
+            containerHeight,
+            actualWidth,
+            actualHeight,
+            padding
+          },
+          deviceInfo: {
+            isIOS: renderDeviceParams.isIOS,
+            pixelRatio: renderDeviceParams.pixelRatio,
+            coordinateOffset: renderDeviceParams.coordinateOffset
+          },
+          层级诊断: {
+            建议: 'Canvas应该使用position: absolute, z-index: 2',
+            容器建议: '容器应该使用position: relative, overflow: hidden, z-index: 1'
+          }
+        });
+        
       });
   },
 
@@ -996,8 +1424,30 @@ Page({
   renderChart(ctx, dates, values, title, canvasWidth, canvasHeight, deviceParams = {}) {
     // 参数验证
     if (!dates || dates.length === 0 || !values || values.length === 0) {
-      console.log('数据为空，跳过绘制');
       return;
+    }
+    
+    // iOS坐标系转换处理
+    if (deviceParams.isIOS) {
+      console.log('应用iOS坐标系转换');
+      
+      // 保存当前状态
+      ctx.save();
+      
+      // iOS设备需要特殊的坐标系处理
+      // 1. 重置变换矩阵
+      ctx.setTransform(1, 0, 0, 1, 0, 0);
+      
+      // 2. 应用坐标偏移（如果需要）
+      if (deviceParams.coordinateOffset) {
+        ctx.translate(deviceParams.coordinateOffset.x, deviceParams.coordinateOffset.y);
+      }
+      
+      // 3. 应用安全区域偏移
+      if (deviceParams.safeAreaInsets) {
+        const { top, left } = deviceParams.safeAreaInsets;
+        ctx.translate(left, top);
+      }
     }
     
     // 设置样式参数 - 优化padding以充分利用空间
@@ -1014,15 +1464,6 @@ Page({
     // 应用设备适配参数
     const scaleRatio = deviceParams.scaleRatio || 1;
     
-    console.log('图表绘制参数:', {
-      canvasWidth,
-      canvasHeight,
-      padding,
-      chartWidth,
-      chartHeight,
-      scaleRatio,
-      deviceParams
-    });
     
     // 绘制背景
     ctx.fillStyle = '#ffffff';
@@ -1035,9 +1476,14 @@ Page({
     ctx.textAlign = 'center';
     ctx.fillText(title, canvasWidth / 2, padding.top * 0.6);
     
-    // 计算数据范围
-    const minValue = Math.min(...values);
-    const maxValue = Math.max(...values);
+    // 计算数据范围 - 确保所有值都是数字类型
+    const numericValues = values.map(val => parseFloat(val)).filter(val => !isNaN(val));
+    if (numericValues.length === 0) {
+      return;
+    }
+    
+    const minValue = Math.min(...numericValues);
+    const maxValue = Math.max(...numericValues);
     const valueRange = maxValue - minValue;
     const valuePadding = valueRange * 0.1;
     
@@ -1114,7 +1560,7 @@ Page({
       
       dates.forEach((date, index) => {
         const x = padding.left + (chartWidth / (dates.length - 1)) * index;
-        const normalizedValue = (values[index] - minValue + valuePadding) / (valueRange + 2 * valuePadding);
+        const normalizedValue = (numericValues[index] - minValue + valuePadding) / (valueRange + 2 * valuePadding);
         const y = padding.top + chartHeight - normalizedValue * chartHeight;
         ctx.lineTo(x, y);
       });
@@ -1131,7 +1577,7 @@ Page({
       
       dates.forEach((date, index) => {
         const x = padding.left + (chartWidth / (dates.length - 1)) * index;
-        const normalizedValue = (values[index] - minValue + valuePadding) / (valueRange + 2 * valuePadding);
+        const normalizedValue = (numericValues[index] - minValue + valuePadding) / (valueRange + 2 * valuePadding);
         const y = padding.top + chartHeight - normalizedValue * chartHeight;
         
         if (index === 0) {
@@ -1149,7 +1595,7 @@ Page({
       ctx.fillStyle = '#5470c6';
       dates.forEach((date, index) => {
         const x = padding.left + (chartWidth / (dates.length - 1)) * index;
-        const normalizedValue = (values[index] - minValue + valuePadding) / (valueRange + 2 * valuePadding);
+        const normalizedValue = (numericValues[index] - minValue + valuePadding) / (valueRange + 2 * valuePadding);
         const y = padding.top + chartHeight - normalizedValue * chartHeight;
         
         ctx.beginPath();
@@ -1169,6 +1615,12 @@ Page({
     // ctx.font = `${tipFontSize}px Arial, sans-serif`;
     // ctx.textAlign = 'left';
     // ctx.fillText('支持手势缩放和拖拽', padding.left, canvasHeight - 8);
+    
+    // iOS状态恢复
+    if (deviceParams.isIOS) {
+      console.log('恢复iOS Canvas状态');
+      ctx.restore();
+    }
   },
   // ======== 动态移动 和 缩放 图表,查静置显示数据功能：待实现 ====
   // // 触摸手势处理
@@ -1343,7 +1795,6 @@ Page({
 
   // 显示图表弹窗
   showChartModal(title, description, dates, values) {
-    console.log('显示图表弹窗:', { title, description, dates, values });
     
     // 计算统计数据
     const stats = this.calculateStats(values);

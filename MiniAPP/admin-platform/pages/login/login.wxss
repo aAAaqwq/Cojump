@@ -471,3 +471,98 @@
   font-size: 22rpx;
   color: #999;
 }
+
+/* 验证码相关样式 */
+.captcha-group {
+  position: relative;
+}
+
+.captcha-group .input-wrapper {
+  display: flex;
+  align-items: center;
+  background: #f5f7fa;
+  border-radius: 16rpx;
+  padding: 20rpx 24rpx;
+  transition: all 0.3s ease;
+  border: 2rpx solid transparent;
+  margin-bottom: 0;
+}
+
+.captcha-input {
+  flex: 1;
+  font-size: 28rpx;
+  color: #333;
+  height: 44rpx;
+  line-height: 44rpx;
+  text-transform: uppercase;
+  letter-spacing: 2rpx;
+}
+
+.captcha-display {
+  position: absolute;
+  right: 20rpx;
+  top: 50%;
+  transform: translateY(-50%);
+  display: flex;
+  align-items: center;
+  gap: 10rpx;
+  z-index: 10;
+}
+
+.captcha-number {
+  min-width: 140rpx;
+  height: 60rpx;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  border-radius: 12rpx;
+  border: 2rpx solid #e0e0e0;
+  box-shadow: 0 4rpx 12rpx rgba(102, 126, 234, 0.2);
+  padding: 0 20rpx;
+}
+
+.captcha-text {
+  font-size: 28rpx;
+  font-weight: bold;
+  color: #fff;
+  text-align: center;
+  text-shadow: 0 2rpx 4rpx rgba(0, 0, 0, 0.3);
+  line-height: 1.2;
+}
+
+.captcha-loading {
+  width: 120rpx;
+  height: 40rpx;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #f5f7fa;
+  border: 1rpx solid #ddd;
+  border-radius: 8rpx;
+  font-size: 24rpx;
+  color: #999;
+}
+
+.captcha-refresh {
+  width: 40rpx;
+  height: 40rpx;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #f5f7fa;
+  border: 1rpx solid #ddd;
+  border-radius: 8rpx;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.captcha-refresh:active {
+  background: #e8f0fe;
+  transform: scale(0.95);
+}
+
+.captcha-refresh .icon-text {
+  font-size: 24rpx;
+  color: #667eea;
+}

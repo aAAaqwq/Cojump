@@ -1,4 +1,5 @@
 // pages/home/home.js - 管理员用户管理页面
+const app = getApp();
 Page({
   data: {
     // 页面状态
@@ -59,6 +60,8 @@ Page({
   },
 
   onShow() {
+    // 检查登录状态
+    this.checkLoginStatus();
     // this.getTabBar().init();
   },
 
@@ -79,6 +82,15 @@ Page({
       currentPage: 1
     });
     this.loadData(); // 调用后端API
+  },
+
+  checkLoginStatus() {
+    const isLogin = app.globalData.isLogin;
+    if (!isLogin) {
+      wx.navigateTo({
+        url: '/pages/login/login'
+      });
+    }
   },
 
   // 高级筛选控制
