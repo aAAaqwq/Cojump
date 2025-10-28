@@ -9,19 +9,30 @@ Page({
   /**
    * 生命周期函数--监听页面加载
    */
-  onLoad(options) {
-    // 检查是否已经登录
+  // onLoad(options) {
+  //   // 检查是否已经登录
+  //   this.checkLoginStatus()
+  // },
+
+  onShow() {
     this.checkLoginStatus()
   },
 
   /**
    * 检查登录状态
    */
-  checkLoginStatus() {
-    const userInfo = wx.getStorageSync('userInfo')
+  async checkLoginStatus() {
+    // 获取用户信息
+    const userInfo = await this.getUserInfo()
+    //如果用户信息存在，则跳转到首页
     if (userInfo) {
-      this.setData({ userInfo })
-      // 如果已登录，跳转到首页
+      this.setData({
+        userInfo: userInfo
+      })
+      
+      // 确保缓存已设置
+      wx.setStorageSync('userInfo', userInfo)
+      
       wx.reLaunch({
         url: '/pages/index/index'
       })
@@ -29,93 +40,179 @@ Page({
   },
 
   /**
-   * 微信授权登录
+   * 获取用户信息，先查缓存，缓存没有则查询数据库中是否存在用户信息
    */
-  wechatLogin(e) {
-    console.log('微信登录授权', e)
-    
-    // 获取用户信息
-    if (e.detail.userInfo) {
-      wx.showLoading({
-        title: '登录中...',
-        mask: true
-      })
-
-      // 调用云函数进行登录
+  async getUserInfo() {
+    return new Promise((resolve, reject) => {
+      // 1. 从本地缓存中获取用户信息
+      const cachedUserInfo = wx.getStorageSync('userInfo')
+      if (cachedUserInfo) {
+        console.log('从本地缓存中获取到用户信息:', cachedUserInfo)
+        resolve(cachedUserInfo)
+        return
+      }
+      
+      // 2. 如果本地缓存中没有用户信息，则查询数据库中是否存在用户信息
       wx.cloud.callFunction({
-        name: 'wechatLogin', // 云函数名称，需要您创建
+        name: 'getUserInfo',
         data: {
-          userInfo: e.detail.userInfo,
           openId: app.globalData.openId
         }
       }).then(res => {
-        wx.hideLoading()
-        
-        if (res.result.success) {
-          // 保存用户信息
+        if (res.result && res.result.success) {
           const userInfo = res.result.userInfo
-          wx.setStorageSync('userInfo', userInfo)
-          wx.setStorageSync('token', res.result.token)
           
-          wx.showToast({
-            title: '登录成功',
-            icon: 'success'
-          })
-
-          // 跳转到首页
-          setTimeout(() => {
-            wx.reLaunch({
-              url: '/pages/index/index'
-            })
-          }, 1500)
+          // 保存到缓存
+          wx.setStorageSync('userInfo', userInfo)
+          console.log('从数据库中获取到用户信息并已缓存:', userInfo)
+          
+          resolve(userInfo)
         } else {
-          wx.showToast({
-            title: res.result.message || '登录失败',
-            icon: 'none'
-          })
+          console.log('数据库中不存在用户信息')
+          resolve(null)
         }
-      }).catch(err => {
-        wx.hideLoading()
-        console.error('微信登录失败:', err)
-        
-        // 开发阶段提示 - 云函数未配置时的临时处理
-        wx.showModal({
-          title: '提示',
-          content: '登录功能需要配置云函数\n开发阶段演示：直接跳转首页',
-          confirmText: '继续',
-          cancelText: '取消',
-          success: (modalRes) => {
-            if (modalRes.confirm) {
-              // 保存用户信息（开发阶段临时方案）
-              const userInfo = {
-                ...e.detail.userInfo,
-                openId: app.globalData.openId,
-                createTime: new Date().getTime()
-              }
-              wx.setStorageSync('userInfo', userInfo)
-              
-              wx.showToast({
-                title: '登录成功',
-                icon: 'success'
-              })
-              
-              setTimeout(() => {
-                wx.reLaunch({
-                  url: '/pages/index/index'
-                })
-              }, 1500)
-            }
-          }
-        })
+      }).catch(error => {
+        console.error('获取用户信息失败', error)
+        resolve(null)
       })
-    } else {
-      // 用户拒绝授权
+    })
+  },
+
+  /**
+   * 微信一键登录
+   * 直接登录，不获取用户授权信息
+   */
+  wechatLogin() {
+    // 直接登录，使用默认用户信息
+    wx.showLoading({
+      title: '登录中...',
+      mask: true
+    })
+  
+    // 调用云函数进行登录
+    wx.cloud.callFunction({
+      name: 'wechatLogin',
+      data: {
+        openId: app.globalData.openId,
+        userInfo: this.data.userInfo // 首次登录不获取用户信息，使用默认值
+      }
+    }).then(res => {
+      wx.hideLoading()
+      console.log('云函数返回:', res)
+      
+      if (res.result.success) {
+        // 缓存用户信息到本地
+        const savedUserInfo = res.result.userInfo
+        wx.setStorageSync('userInfo', savedUserInfo)
+        
+        wx.showToast({
+          title: '登录成功',
+          icon: 'success'
+        })
+
+        // 跳转到首页
+        setTimeout(() => {
+          wx.reLaunch({
+            url: '/pages/index/index'
+          })
+        }, 1500)
+      } else {
+        wx.showToast({
+          title: res.result.message || '登录失败',
+          icon: 'none'
+        })
+      }
+    }).catch(err => {
+      wx.hideLoading()
+      console.error('登录云函数调用失败', err)
+      
       wx.showToast({
-        title: '需要授权才能使用',
+        title: '登录失败，请重试',
         icon: 'none',
         duration: 2000
       })
-    }
+    })
+  },
+
+  /**
+   * 使用用户信息进行登录
+   */
+  loginWithUserInfo(userInfo) {
+    wx.showLoading({
+      title: '登录中...',
+      mask: true
+    })
+  
+    // 调用云函数进行登录
+    wx.cloud.callFunction({
+      name: 'wechatLogin',
+      data: {
+        openId: app.globalData.openId,
+        userInfo: this.userInfo
+      }
+    }).then(res => {
+      wx.hideLoading()
+      console.log('云函数返回:', res)
+      
+      if (res.result.success) {
+        // 保存用户信息到本地
+        const savedUserInfo = res.result.userInfo
+        wx.setStorageSync('userInfo', savedUserInfo)
+        
+        wx.showToast({
+          title: '登录成功',
+          icon: 'success'
+        })
+
+        // 跳转到首页
+        setTimeout(() => {
+          wx.reLaunch({
+            url: '/pages/index/index'
+          })
+        }, 1500)
+      } else {
+        wx.showToast({
+          title: res.result.message || '登录失败',
+          icon: 'none'
+        })
+      }
+    }).catch(err => {
+      wx.hideLoading()
+      console.error('登录云函数调用失败', err)
+      
+      // 开发阶段提示 - 云函数未配置时的临时处理
+      wx.showModal({
+        title: '开发提示',
+        content: '云函数未配置或调用失败\n是否使用本地模拟登录？',
+        confirmText: '本地登录',
+        cancelText: '取消',
+        success: (modalRes) => {
+          if (modalRes.confirm) {
+            // 本地模拟登录（开发阶段）
+            const mockUserInfo = {
+              _id: 'mock_' + Date.now(),
+              openId: app.globalData.openId,
+              nickName: userInfo.nickName || '微信用户',
+              avatarUrl: userInfo.avatarUrl || '',
+              createTime: new Date().getTime(),
+              lastLoginTime: new Date().getTime()
+            }
+            wx.setStorageSync('userInfo', mockUserInfo)
+            
+            wx.showToast({
+              title: '本地登录成功',
+              icon: 'success'
+            })
+            
+            setTimeout(() => {
+              wx.reLaunch({
+                url: '/pages/index/index'
+              })
+            }, 1500)
+          }
+        }
+      })
+    })
   },
 
   /**

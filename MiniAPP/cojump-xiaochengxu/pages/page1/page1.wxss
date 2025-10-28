@@ -82,7 +82,7 @@
 }
 
 .card-content {
-  padding: 32rpx;
+  padding: 5rpx;
 }
 
 /* 优化后的模式按钮 */
@@ -264,7 +264,8 @@
 .control-buttons {
   display: grid;
   grid-template-columns: repeat(2, 1fr);
-  gap: 24rpx;
+  gap: 25rpx;
+  padding: 4%rpx;
 }
 
 /* 优化后的控制按钮 */
@@ -312,7 +313,7 @@
 }
 
 .btn-control-main {
-  font-size: 30rpx;
+  font-size: 20rpx;
   font-weight: bold;
   color: #ffffff;
   letter-spacing: 1rpx;

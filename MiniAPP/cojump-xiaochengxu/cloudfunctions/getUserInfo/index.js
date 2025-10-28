@@ -1,36 +1,53 @@
-// 云函数入口文件
+// cloudfunctions/getUserInfo/index.js
 const cloud = require('wx-server-sdk')
-cloud.init({ env: cloud.DYNAMIC_CURRENT_ENV }) // 使用当前云环境
+
+cloud.init({
+  env: cloud.DYNAMIC_CURRENT_ENV
+})
+
 const db = cloud.database()
-// 云函数入口函数
+
+/**
+ * 获取用户信息云函数
+ * @param {string} openId - 用户openId
+ */
 exports.main = async (event, context) => {
-  const {openid} = event
-  try{
-    const user=await db.collection('user').where({
-      openid
-    }).get() 
-    if(user.data.length){
+  const { openId } = event
+  const wxContext = cloud.getWXContext()
+  const actualOpenId = openId || wxContext.OPENID
+
+  if (!actualOpenId) {
+    return {
+      success: false,
+      message: '无法获取用户OpenID'
+    }
+  }
+
+  try {
+    // 查询用户信息
+    const userQuery = await db.collection('users')
+      .where({ openId: actualOpenId })
+      .get()
+
+    if (userQuery.data.length === 0) {
       return {
-        success:true,
-        message:'获取用户信息成功',
-        data:user.data[0]
+        success: false,
+        message: '用户不存在'
       }
     }
+
+    const user = userQuery.data[0]
+
     return {
-      success:false,
-      message:'用户不存在',
-      data:{
-        openid:openid,
-        nickName:"",
-        avatarURL:"",
-      }
+      success: true,
+      userInfo: user,
+      message: '获取成功'
     }
-  }catch(e){
-    console.error(e)
+  } catch (e) {
+    console.error('getUserInfo cloud function error', e)
     return {
-      success:false,
-      message:'内部服务错误',
-      error:e
+      success: false,
+      message: `获取失败: ${e.message}`
     }
-  } 
+  }
 }

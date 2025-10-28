@@ -22,10 +22,10 @@
 
     <!-- 微信授权登录 -->
     <view class="wechat-login-section">
+      <!-- 使用普通button，点击后调用getUserProfile -->
       <button 
         class="wechat-login-btn" 
-        open-type="getUserInfo" 
-        bindgetuserinfo="wechatLogin"
+        bindtap="wechatLogin"
       >
         <view class="btn-content">
           <text class="wechat-icon">💚</text>

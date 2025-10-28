@@ -11,7 +11,7 @@
     </view>
     <!-- 个人信息入口 -->
     <view class="user-info-btn" bindtap="toUserInfo">
-      <image wx:if="{{userInfo && userInfo.avatarUrl}}" src="{{userInfo.avatarUrl}}" class="user-avatar"></image>
+      <image wx:if="{{userInfo && userInfo.avatarUrl && userInfo.avatarUrl !== ''}}" src="{{userInfo.avatarUrl}}" mode="aspectFill" class="user-avatar" lazy-load></image>
       <view wx:else class="user-avatar-default">👤</view>
     </view>
   </view>

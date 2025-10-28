@@ -17,6 +17,7 @@ Page({
     timeStr: '', // 倒计时展示的字符串
     timer: null, // 定时器
     timeInSecs: 0,
+    timerStatus:"pause",
   },
   
   stringToBytes(str) {
@@ -151,6 +152,9 @@ Page({
       inputTime: '', // 清空输入框
     });
 
+    if (that.data.timerStatus == "start") {
+      return;
+    }
     that.data.timer = setInterval(function() {
       if (that.data.timeInSecs > 0) {
         that.setData({
@@ -161,12 +165,18 @@ Page({
         that.endTimer(); // 结束倒计时
       }
     }, 1000);
+    that.setData({
+      timerStatus:"start",
+    });
   },
   // 暂停倒计时
   pauseTimer: function() {
     const that = this;
     if (that.data.timer) {
       clearInterval(that.data.timer);
+      that.setData({
+        timerStatus:"pause",
+      });
     }
   },
   // 结束倒计时

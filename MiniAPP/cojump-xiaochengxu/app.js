@@ -60,7 +60,7 @@ App({
   // app.js
 globalData: {
   openId:"",
-  userInfo: null,
+  userInfo: null, // 用户信息:1.openId 2.nickName 3.avatarUrl 4.createTime 5.lastLoginTime
   'deviceId':'',
   'serviceId':'',
   'characteristicId':'',
