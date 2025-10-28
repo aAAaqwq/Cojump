@@ -1,20 +1,492 @@
-/**index.wxss**/
-.input-container {
-  margin-bottom: 20px;
+/**index.wxss - COJUMP智能康复训练系统首页样式**/
+
+.index-container {
+  min-height: 100vh;
+  background: #f5f7fa;
+  padding: 0 0 100rpx 0;
 }
-.countdown {
-  font-size: 30px;
-  color: rgb(0, 89, 255);
+
+/* ==================== 顶部品牌栏 ==================== */
+.brand-header {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  padding: 60rpx 40rpx 50rpx;
+  display: flex;
+  align-items: center;
+  gap: 24rpx;
+  box-shadow: 0 8rpx 24rpx rgba(102, 126, 234, 0.25);
+  animation: slideDown 0.8s ease;
 }
-.container {
+
+@keyframes slideDown {
+  from {
+    opacity: 0;
+    transform: translateY(-60rpx);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.brand-logo-wrapper {
+  width: 100rpx;
+  height: 100rpx;
+  background: rgba(255, 255, 255, 0.95);
+  border-radius: 20rpx;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 12rpx;
+  box-shadow: 0 4rpx 16rpx rgba(0, 0, 0, 0.15);
+}
+
+.brand-logo {
+  width: 100%;
+  height: auto;
+}
+
+.brand-text {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 6rpx;
+}
+
+.brand-name {
+  font-size: 56rpx;
+  font-weight: 800;
+  color: #ffffff;
+  letter-spacing: 4rpx;
+  text-shadow: 0 2rpx 8rpx rgba(0, 0, 0, 0.2);
+  font-family: -apple-system, BlinkMacSystemFont, sans-serif;
+}
+
+.brand-tagline {
+  font-size: 26rpx;
+  color: rgba(255, 255, 255, 0.95);
+  letter-spacing: 2rpx;
+  font-weight: 500;
+}
+
+/* 个人信息入口 */
+.user-info-btn {
+  width: 80rpx;
+  height: 80rpx;
+  border-radius: 50%;
+  overflow: hidden;
+  background: rgba(255, 255, 255, 0.95);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 4rpx 16rpx rgba(0, 0, 0, 0.2);
+  transition: all 0.3s;
+}
+
+.user-info-btn:active {
+  transform: scale(0.95);
+}
+
+.user-avatar {
+  width: 100%;
+  height: 100%;
+}
+
+.user-avatar-default {
+  font-size: 44rpx;
+  color: #667eea;
+}
+
+/* ==================== 蓝牙连接卡片 ==================== */
+.connection-card {
+  margin: 32rpx 40rpx;
+  padding: 32rpx;
+  background: #ffffff;
+  border-radius: 24rpx;
+  box-shadow: 0 4rpx 16rpx rgba(0, 0, 0, 0.08);
+  animation: fadeInUp 0.8s ease 0.1s both;
+}
+
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(40rpx);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.connection-status {
   display: flex;
   flex-direction: column;
   align-items: center;
-  background-color: #f8f8f8;
-  min-height: 100vh;
+  gap: 8rpx;
+  margin-bottom: 24rpx;
 }
-.components/chart-canvas/chart-canvas {
-  margin: 20rpx;
-  border-radius: 10rpx;
-  box-shadow: 0 2rpx 10rpx rgba(0,0,0,0.1);
+
+.status-indicator {
+  display: flex;
+  align-items: center;
+  gap: 12rpx;
+}
+
+.pulse-dot {
+  width: 12rpx;
+  height: 12rpx;
+  border-radius: 50%;
+  background: #95a5a6;
+  animation: pulse 2s infinite;
+}
+
+@keyframes pulse {
+  0%, 100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 0.5;
+    transform: scale(1.2);
+  }
+}
+
+.status-text {
+  font-size: 32rpx;
+  font-weight: 600;
+  color: #2c3e50;
+}
+
+.status-label {
+  font-size: 24rpx;
+  color: #95a5a6;
+  letter-spacing: 1rpx;
+}
+
+/* 优化后的蓝牙连接按钮 */
+.btn-connect {
+  width: 100%;
+  height: 100rpx;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  border-radius: 20rpx;
+  border: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+  box-shadow: 0 8rpx 24rpx rgba(102, 126, 234, 0.35);
+  transition: all 0.3s;
+  position: relative;
+}
+
+.btn-connect:active {
+  transform: translateY(2rpx);
+  box-shadow: 0 4rpx 12rpx rgba(102, 126, 234, 0.3);
+}
+
+.btn-icon {
+  font-size: 36rpx;
+  filter: drop-shadow(0 2rpx 4rpx rgba(0, 0, 0, 0.1));
+  position: absolute;
+  left: 32rpx;
+}
+
+.btn-text-group {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 2rpx;
+  padding-left: 48rpx;
+}
+
+.btn-text-main {
+  font-size: 30rpx;
+  font-weight: bold;
+  color: #ffffff;
+  letter-spacing: 1rpx;
+  line-height: 1.3;
+  text-align: center;
+}
+
+.btn-text-sub {
+  font-size: 20rpx;
+  color: rgba(255, 255, 255, 0.9);
+  letter-spacing: 0.5rpx;
+  line-height: 1.3;
+  text-align: center;
+}
+
+/* ==================== 章节标题 ==================== */
+.section-header {
+  display: flex;
+  align-items: center;
+  gap: 24rpx;
+  padding: 40rpx 40rpx 32rpx;
+}
+
+.section-line {
+  flex: 1;
+  height: 2rpx;
+  background: linear-gradient(to right, transparent, #e0e0e0, transparent);
+}
+
+.section-title-wrapper {
+  display: flex;
+  align-items: center;
+  gap: 12rpx;
+  padding: 16rpx 32rpx;
+  background: #ffffff;
+  border-radius: 48rpx;
+  box-shadow: 0 4rpx 16rpx rgba(0, 0, 0, 0.08);
+}
+
+.section-icon {
+  font-size: 36rpx;
+}
+
+.section-title {
+  font-size: 32rpx;
+  font-weight: 700;
+  color: #2c3e50;
+  letter-spacing: 2rpx;
+}
+
+/* ==================== 训练模式网格 ==================== */
+.mode-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 24rpx;
+  padding: 0 40rpx 32rpx;
+}
+
+.mode-card {
+  position: relative;
+  aspect-ratio: 1;
+  border-radius: 24rpx;
+  overflow: hidden;
+  box-shadow: 0 8rpx 24rpx rgba(0, 0, 0, 0.12);
+  transition: all 0.3s;
+}
+
+.mode-card:nth-child(1) {
+  animation: fadeInUp 0.8s ease 0.2s both;
+}
+
+.mode-card:nth-child(2) {
+  animation: fadeInUp 0.8s ease 0.3s both;
+}
+
+.mode-card:nth-child(3) {
+  animation: fadeInUp 0.8s ease 0.4s both;
+}
+
+.mode-card:nth-child(4) {
+  animation: fadeInUp 0.8s ease 0.5s both;
+}
+
+.mode-card:active {
+  transform: scale(0.96);
+  box-shadow: 0 4rpx 12rpx rgba(0, 0, 0, 0.1);
+}
+
+.mode-bg {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  opacity: 0.95;
+}
+
+.primary-gradient {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+}
+
+.success-gradient {
+  background: linear-gradient(135deg, #56ab2f 0%, #a8e063 100%);
+}
+
+.warning-gradient {
+  background: linear-gradient(135deg, #f7971e 0%, #ffd200 100%);
+}
+
+.info-gradient {
+  background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+}
+
+.mode-content {
+  position: relative;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 12rpx;
+  padding: 32rpx 20rpx;
+  z-index: 1;
+}
+
+.mode-icon-circle {
+  width: 100rpx;
+  height: 100rpx;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.95);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 8rpx;
+  box-shadow: 0 8rpx 24rpx rgba(0, 0, 0, 0.2);
+  border: 4rpx solid transparent;
+  transition: all 0.3s;
+}
+
+.mode-card:active .mode-icon-circle {
+  transform: scale(1.1) rotate(5deg);
+}
+
+.primary-border {
+  border-color: rgba(102, 126, 234, 0.3);
+}
+
+.success-border {
+  border-color: rgba(86, 171, 47, 0.3);
+}
+
+.warning-border {
+  border-color: rgba(247, 151, 30, 0.3);
+}
+
+.info-border {
+  border-color: rgba(79, 172, 254, 0.3);
+}
+
+.mode-icon {
+  font-size: 56rpx;
+  filter: drop-shadow(0 2rpx 4rpx rgba(0, 0, 0, 0.1));
+}
+
+.mode-title {
+  font-size: 32rpx;
+  font-weight: bold;
+  color: #ffffff;
+  letter-spacing: 2rpx;
+  text-shadow: 0 2rpx 8rpx rgba(0, 0, 0, 0.2);
+}
+
+.mode-subtitle {
+  font-size: 22rpx;
+  color: rgba(255, 255, 255, 0.95);
+  letter-spacing: 1rpx;
+  font-weight: 500;
+}
+
+/* ==================== 功能卡片 ==================== */
+.feature-card {
+  margin: 0 40rpx 32rpx;
+  padding: 32rpx;
+  background: #ffffff;
+  border-radius: 24rpx;
+  box-shadow: 0 4rpx 16rpx rgba(0, 0, 0, 0.08);
+  display: flex;
+  align-items: center;
+  gap: 24rpx;
+  transition: all 0.3s;
+  animation: fadeInUp 0.8s ease 0.6s both;
+}
+
+.feature-card:active {
+  transform: translateX(8rpx);
+  box-shadow: 0 2rpx 8rpx rgba(0, 0, 0, 0.06);
+}
+
+.feature-icon-box {
+  width: 96rpx;
+  height: 96rpx;
+  border-radius: 20rpx;
+  background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 8rpx 24rpx rgba(245, 87, 108, 0.3);
+  flex-shrink: 0;
+}
+
+.feature-icon {
+  font-size: 52rpx;
+}
+
+.feature-info {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 8rpx;
+}
+
+.feature-title {
+  font-size: 32rpx;
+  font-weight: bold;
+  color: #2c3e50;
+}
+
+.feature-desc {
+  font-size: 24rpx;
+  color: #7f8c8d;
+  line-height: 1.5;
+}
+
+.feature-arrow {
+  font-size: 48rpx;
+  color: #bdc3c7;
+  font-weight: 300;
+  flex-shrink: 0;
+}
+
+/* ==================== 底部品牌标识 ==================== */
+.footer-brand {
+  margin-top: 60rpx;
+  padding: 40rpx;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 20rpx;
+}
+
+.footer-text {
+  font-size: 26rpx;
+  color: #95a5a6;
+  letter-spacing: 2rpx;
+  font-weight: 600;
+}
+
+.footer-dots {
+  display: flex;
+  gap: 12rpx;
+}
+
+.dot {
+  width: 8rpx;
+  height: 8rpx;
+  border-radius: 50%;
+  background: #bdc3c7;
+  animation: dotPulse 1.5s infinite;
+}
+
+.dot:nth-child(2) {
+  animation-delay: 0.2s;
+}
+
+.dot:nth-child(3) {
+  animation-delay: 0.4s;
+}
+
+@keyframes dotPulse {
+  0%, 100% {
+    opacity: 0.3;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 1;
+    transform: scale(1.3);
+  }
 }

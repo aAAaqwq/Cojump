@@ -171,24 +171,6 @@
   </view>
   </scroll-view>
 
-  <!-- 底部操作区域 -->
-  <!-- <view class="action-section">
-    <view class="action-buttons">
-      <button class="action-btn primary" bindtap="addTestDataPoint">
-        <text class="btn-icon">📈</text>
-        <text class="btn-text">添加指定日期数据</text>
-      </button>
-      <button class="action-btn secondary" bindtap="clearAllData">
-        <text class="btn-icon">🗑️</text>
-        <text class="btn-text">清空所有数据</text>
-      </button>
-      <button class="action-btn test" bindtap="testEChartsModal">
-        <text class="btn-icon">🧪</text>
-        <text class="btn-text">测试ECharts弹窗</text>
-      </button>
-    </view>
-  </view> -->
-
   <!-- ECharts图表弹窗Modal -->
   <view wx:if="{{showChartModal}}" class="chart-modal-overlay" catchtouchmove="return">
     <view class="chart-modal-content" catchtap="" catchtouchmove="return">

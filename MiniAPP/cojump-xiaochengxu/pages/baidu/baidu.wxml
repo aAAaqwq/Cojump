@@ -1,10 +1,120 @@
-
-<view class="container">
-  <image src="/image/KANG_YU.png" mode="widthFix" style="width: 300px; height: auto;"></image>
-  <view style="height: 30px;"></view><view class="videoWrap" style="position: relative; left: -38rpx; top: -162rpx">
-  <textarea placeholder='等待说话...' value='{{content}}' style="width: 512rpx; display: block; box-sizing: border-box; left: 0rpx; top: 0rpx"></textarea>
+<!--baidu.wxml - 语音识别优化-->
+<view class="voice-container">
+  <!-- 页面标题卡片 -->
+  <view class="page-header card">
+    <text class="page-icon">🎤</text>
+    <view class="page-header-content">
+      <text class="page-title">语音识别</text>
+      <text class="page-subtitle">Voice Recognition</text>
+    </view>
   </view>
-  <button type="primary" style="margin-top: 20px; position: relative; left: 1rpx; top: -102rpx" bindtap="touchStart">开始录音</button>
-  <button type="warn"  style="margin-top: 20px; position: relative; left: 0rpx; top: -75rpx" bindtap="touchEnd">结束录音</button>
-  <button type="default"  style="margin-top: 20px; position: relative; left: 0rpx; top: -75rpx" bindtap="shibie">识别录音</button>
+
+  <!-- 识别结果卡片 -->
+  <view class="result-card card">
+    <view class="card-header">
+      <text class="card-header-icon">💬</text>
+      <text class="card-header-title">识别结果</text>
+    </view>
+    <view class="card-content">
+      <view class="result-display">
+        <textarea 
+          placeholder='等待您的语音输入...' 
+          value='{{content}}' 
+          class="result-textarea"
+          disabled
+        ></textarea>
+        <view wx:if="{{!content}}" class="empty-hint">
+          <text class="empty-icon">🎙️</text>
+          <text class="empty-text">点击下方按钮开始录音</text>
+        </view>
+      </view>
+    </view>
+  </view>
+
+  <!-- 录音控制卡片 -->
+  <view class="control-card card">
+    <view class="card-header">
+      <text class="card-header-icon">🎛️</text>
+      <text class="card-header-title">录音控制</text>
+    </view>
+    <view class="card-content">
+      <!-- 录音状态指示 -->
+      <view class="recording-status {{isRecording ? 'active' : ''}}">
+        <view class="status-indicator">
+          <view class="pulse-dot {{isRecording ? 'recording' : ''}}"></view>
+          <text class="status-text">{{isRecording ? '正在录音中...' : '等待录音'}}</text>
+        </view>
+      </view>
+
+      <!-- 录音按钮组 -->
+      <view class="button-group">
+        <button class="voice-btn start-btn" bindtap="touchStart">
+          <view class="btn-inner">
+            <text class="btn-inner-icon">🎙️</text>
+            <view class="btn-inner-text">
+              <text class="btn-inner-main">开始录音</text>
+              <text class="btn-inner-sub">Start Recording</text>
+            </view>
+          </view>
+        </button>
+
+        <button class="voice-btn stop-btn" bindtap="touchEnd">
+          <view class="btn-inner">
+            <text class="btn-inner-icon">⏹️</text>
+            <view class="btn-inner-text">
+              <text class="btn-inner-main">结束录音</text>
+              <text class="btn-inner-sub">Stop Recording</text>
+            </view>
+          </view>
+        </button>
+
+        <button class="voice-btn recognize-btn" bindtap="shibie">
+          <view class="btn-inner">
+            <text class="btn-inner-icon">🔍</text>
+            <view class="btn-inner-text">
+              <text class="btn-inner-main">识别录音</text>
+              <text class="btn-inner-sub">Recognize</text>
+            </view>
+          </view>
+        </button>
+      </view>
+    </view>
+  </view>
+
+  <!-- 使用说明卡片 -->
+  <view class="instruction-card card">
+    <view class="card-header">
+      <text class="card-header-icon">📖</text>
+      <text class="card-header-title">使用说明</text>
+    </view>
+    <view class="card-content">
+      <view class="instruction-item">
+        <text class="instruction-number">1</text>
+        <view class="instruction-content">
+          <text class="instruction-title">开始录音</text>
+          <text class="instruction-desc">点击"开始录音"按钮，准备好后开始说话</text>
+        </view>
+      </view>
+      <view class="instruction-item">
+        <text class="instruction-number">2</text>
+        <view class="instruction-content">
+          <text class="instruction-title">结束录音</text>
+          <text class="instruction-desc">说完后点击"结束录音"按钮停止</text>
+        </view>
+      </view>
+      <view class="instruction-item">
+        <text class="instruction-number">3</text>
+        <view class="instruction-content">
+          <text class="instruction-title">开始识别</text>
+          <text class="instruction-desc">点击"识别录音"按钮，系统会自动将语音转为文字</text>
+        </view>
+      </view>
+    </view>
+  </view>
+
+  <!-- 底部提示 -->
+  <view class="bottom-tips">
+    <text class="tips-icon">💡</text>
+    <text class="tips-text">请在安静环境下录音，以获得更好的识别效果</text>
+  </view>
 </view>

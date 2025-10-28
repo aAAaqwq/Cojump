@@ -1,0 +1,53 @@
+# macOS
+.DS_Store
+
+# Windows
+Thumbs.db
+*.lnk
+desktop.ini
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# .cursor
+.cursor/
+
+# Editor
+*.sublime-project
+*.sublime-workspace
+
+# Node modules
+node_modules/
+npm-debug.log*
+yarn-error.log
+
+# 微信小程序
+miniProgram_npm/
+project.private.config.json
+
+# 日志文件
+*.log
+logs/
+
+# 临时文件
+*.tmp
+.temp/
+temp/
+
+# 环境变量文件
+.env
+.env.local
+.env.*.local
+
+# 构建产物
+dist/
+build/
+
+# 其他
+.cache/
+*.cache
+

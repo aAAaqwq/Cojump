@@ -1,13 +1,118 @@
-<!--index.wxml-->
-<view class="container" >
-  <image src="/image/KANG_YU.png" mode="widthFix" style="width: 300px; height: auto;"></image>
-  <view style="height: 30px;"></view>
- <input style="width: 624rpx; display: block; box-sizing: border-box; height: 77rpx" type="number" placeholder="请输入速度(1500--3000)" bindinput="bindInput" class="input-box"value="{{ speedInput }}"/>
- <view class="speed">
-    <text class="speed">Please enter the speed (1500--3000) </text>
-  </view>  
- <view style="height: 10px;"></view>
- <button type="primary" bindtouchstart="start" bindtouchend="lightoff" style="width: 464rpx; display: block; box-sizing: border-box; left: 0rpx; top: 0rpx">按住启动（Press and hold to start）</button>
- <view style="height: 10px;"></view>
+<!--page2.wxml - 热身模式优化-->
+<view class="warmup-container">
+  <!-- 页面标题卡片 -->
+  <view class="page-header card">
+    <text class="page-icon">🔥</text>
+    <view class="page-header-content">
+      <text class="page-title">热身模式</text>
+      <text class="page-subtitle">Warm Up Mode</text>
+    </view>
+  </view>
 
- </view>  
+  <!-- 速度设置卡片 -->
+  <view class="speed-setting-card card">
+    <view class="card-header">
+      <text class="card-header-icon">⚡</text>
+      <text class="card-header-title">速度设置</text>
+    </view>
+    <view class="card-content">
+      <view class="input-group">
+        <view class="input-label-wrapper">
+          <text class="input-label">热身速度</text>
+          <text class="input-hint">Please enter the speed (1500-3000)</text>
+        </view>
+        <view class="modern-input-wrapper">
+          <text class="input-prefix">🏃</text>
+          <input 
+            class="modern-input" 
+            type="number" 
+            placeholder="请输入速度 (1500-3000)" 
+            bindinput="bindInput" 
+            value="{{speedInput}}"
+          />
+          <text class="input-suffix">RPM</text>
+        </view>
+      </view>
+
+      <!-- 速度范围提示 -->
+      <view class="speed-range-hint">
+        <view class="range-item">
+          <text class="range-label">最小值</text>
+          <text class="range-value">1500</text>
+        </view>
+        <view class="range-divider">━━━</view>
+        <view class="range-item">
+          <text class="range-label">最大值</text>
+          <text class="range-value">3000</text>
+        </view>
+      </view>
+    </view>
+  </view>
+
+  <!-- 控制按钮卡片 -->
+  <view class="control-card card">
+    <view class="card-header">
+      <text class="card-header-icon">🎮</text>
+      <text class="card-header-title">训练控制</text>
+    </view>
+    <view class="card-content">
+      <view class="press-hold-hint">
+        <text class="hint-icon">👆</text>
+        <text class="hint-text">长按启动，松开停止</text>
+        <text class="hint-subtitle">Press and Hold to Start</text>
+      </view>
+      
+      <button 
+        class="btn-press-hold" 
+        bindtouchstart="start" 
+        bindtouchend="lightoff"
+      >
+        <view class="btn-press-content">
+          <text class="btn-press-icon">▶️</text>
+          <view class="btn-press-text">
+            <text class="btn-press-main">按住启动</text>
+            <text class="btn-press-sub">Press & Hold</text>
+          </view>
+        </view>
+        <view class="btn-press-effect"></view>
+      </button>
+    </view>
+  </view>
+
+  <!-- 使用说明卡片 -->
+  <view class="instruction-card card">
+    <view class="card-header">
+      <text class="card-header-icon">📖</text>
+      <text class="card-header-title">使用说明</text>
+    </view>
+    <view class="card-content">
+      <view class="instruction-item">
+        <text class="instruction-number">1</text>
+        <view class="instruction-content">
+          <text class="instruction-title">设置速度</text>
+          <text class="instruction-desc">输入合适的热身速度（1500-3000 RPM）</text>
+        </view>
+      </view>
+      <view class="instruction-item">
+        <text class="instruction-number">2</text>
+        <view class="instruction-content">
+          <text class="instruction-title">长按启动</text>
+          <text class="instruction-desc">按住按钮开始热身训练</text>
+        </view>
+      </view>
+      <view class="instruction-item">
+        <text class="instruction-number">3</text>
+        <view class="instruction-content">
+          <text class="instruction-title">松开停止</text>
+          <text class="instruction-desc">松开按钮即可停止训练</text>
+        </view>
+      </view>
+    </view>
+  </view>
+
+  <!-- 底部提示 -->
+  <view class="bottom-tips">
+    <text class="tips-icon">💡</text>
+    <text class="tips-text">热身运动有助于提高训练效果，建议训练前进行适当热身</text>
+  </view>
+</view>

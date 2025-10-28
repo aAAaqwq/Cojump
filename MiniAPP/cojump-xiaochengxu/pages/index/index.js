@@ -26,11 +26,34 @@ Page({
     timer: null, // 定时器
     timeInSecs: 0,
     token:'',
-    content:''
+    content:'',
+    userInfo: null // 用户信息
   },
 
   onLoad() {
     this.chartComponent = this.selectComponent('#chartCanvas');
+    // 加载用户信息
+    this.loadUserInfo();
+  },
+
+  onShow() {
+    // 页面显示时重新加载用户信息
+    this.loadUserInfo();
+  },
+
+  // 加载用户信息
+  loadUserInfo() {
+    const userInfo = wx.getStorageSync('userInfo');
+    if (userInfo) {
+      this.setData({ userInfo });
+    }
+  },
+
+  // 跳转到个人信息页面
+  toUserInfo() {
+    wx.navigateTo({
+      url: '/pages/userInfo/userInfo'
+    });
   },
   
   BLE: function() {

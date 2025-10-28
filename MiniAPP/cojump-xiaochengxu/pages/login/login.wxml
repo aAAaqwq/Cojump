@@ -1,0 +1,55 @@
+<!--login.wxml - COJUMP康复训练系统登录页（微信授权登录）-->
+<view class="login-container">
+  <!-- 顶部装饰波浪 -->
+  <view class="wave-bg"></view>
+  
+  <!-- Logo和品牌区域 -->
+  <view class="logo-section">
+    <image src="/image/KANG_YU.png" mode="widthFix" class="logo-image"></image>
+    <view class="brand-info">
+      <text class="brand-name">COJUMP</text>
+      <text class="brand-slogan">智能康复训练系统</text>
+      <text class="brand-subtitle">Intelligent Rehabilitation Training System</text>
+    </view>
+  </view>
+
+  <!-- 登录卡片 -->
+  <view class="login-card">
+    <view class="card-title">
+      <text class="title-text">欢迎使用</text>
+      <text class="title-subtitle">Welcome to COJUMP</text>
+    </view>
+
+    <!-- 微信授权登录 -->
+    <view class="wechat-login-section">
+      <button 
+        class="wechat-login-btn" 
+        open-type="getUserInfo" 
+        bindgetuserinfo="wechatLogin"
+      >
+        <view class="btn-content">
+          <text class="wechat-icon">💚</text>
+          <text class="wechat-text">微信授权登录</text>
+          <text class="wechat-subtitle">WeChat Authorization Login</text>
+        </view>
+      </button>
+
+      <view class="login-tips">
+        <text class="tips-icon">🔒</text>
+        <text class="tips-text">点击授权即表示您已阅读并同意</text>
+      </view>
+
+      <view class="agreement-links">
+        <text class="agreement-link" bindtap="showAgreement">《用户协议》</text>
+        <text class="agreement-text">和</text>
+        <text class="agreement-link" bindtap="showPrivacy">《隐私政策》</text>
+      </view>
+    </view>
+  </view>
+
+  <!-- 底部品牌信息 -->
+  <view class="footer-info">
+    <text class="footer-text">Powered by COJUMP</text>
+    <text class="footer-copyright">© 2024 康复训练科技</text>
+  </view>
+</view>

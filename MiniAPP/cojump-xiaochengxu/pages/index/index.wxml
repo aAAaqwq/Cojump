@@ -1,19 +1,127 @@
-<!--index.wxml-->
-<view class="container">
-  <image src="/image/KANG_YU.png" mode="widthFix" style="width: 300px; height: auto;"></image>
-  <view style="height: 30px;"></view>
-  <button type="primary" bindtap="BLE" style="width: 495rpx; display: block; box-sizing: border-box; left: 0rpx; top: 0rpx">连接蓝牙（Connect Bluetooth）</button>
-  <view style="height: 20px;"></view>
-  <button type="primary" bindtap="ToPage1" style="width: 495rpx; display: block; box-sizing: border-box; left: 0rpx; top: 0rpx">肌力训练模式（Strength training mode）</button>
-  <view style="height: 20px;"></view>
-  <button type="primary" bindtap="ToPage2" style="width: 495rpx; display: block; box-sizing: border-box; left: 0rpx; top: 0rpx">热身模式（Warm up mode）</button>
-  <view style="height: 30px;"></view>
-  <button type="primary" bindtap="Tobaidu" style="width: 495rpx; display: block; box-sizing: border-box; left: 0rpx; top: 0rpx">语音识别</button>
-  <view style="height: 30px;"></view>
-  <button type="primary" bindtap="ToPage4" style="width: 495rpx; display: block; box-sizing: border-box; left: 0rpx; top: 0rpx">EMG训练</button>
-  <view style="height: 30px;"></view>
-  <button type="primary" bindtap="ToPage3" style="width: 495rpx; display: block; box-sizing: border-box; left: 0rpx; top: 0rpx">EMG图像</button>
-  <view style="height: 30px;"></view>
-</view>
+<!--index.wxml - COJUMP智能康复训练系统首页-->
+<view class="index-container">
+  <!-- 顶部品牌栏 -->
+  <view class="brand-header">
+    <view class="brand-logo-wrapper">
+      <image src="/image/KANG_YU.png" mode="widthFix" class="brand-logo"></image>
+    </view>
+    <view class="brand-text">
+      <text class="brand-name">COJUMP</text>
+      <text class="brand-tagline">智能康复训练系统</text>
+    </view>
+    <!-- 个人信息入口 -->
+    <view class="user-info-btn" bindtap="toUserInfo">
+      <image wx:if="{{userInfo && userInfo.avatarUrl}}" src="{{userInfo.avatarUrl}}" class="user-avatar"></image>
+      <view wx:else class="user-avatar-default">👤</view>
+    </view>
+  </view>
 
- 
+  <!-- 蓝牙连接状态卡片 -->
+  <view class="connection-card card">
+    <view class="connection-status">
+      <view class="status-indicator">
+        <view class="pulse-dot"></view>
+        <text class="status-text">设备状态</text>
+      </view>
+      <text class="status-label">Device Status</text>
+    </view>
+    <button class="btn-connect" bindtap="BLE">
+      <text class="btn-icon">🔗</text>
+      <view class="btn-text-group">
+        <text class="btn-text-main">连接蓝牙设备</text>
+        <text class="btn-text-sub">Connect Bluetooth</text>
+      </view>
+    </button>
+  </view>
+
+  <!-- 训练模式选择 -->
+  <view class="section-header">
+    <view class="section-line"></view>
+    <view class="section-title-wrapper">
+      <text class="section-icon">🏋️</text>
+      <text class="section-title">训练模式</text>
+    </view>
+    <view class="section-line"></view>
+  </view>
+
+  <view class="mode-grid">
+    <!-- 肌力训练模式 -->
+    <view class="mode-card" bindtap="ToPage1">
+      <view class="mode-bg primary-gradient"></view>
+      <view class="mode-content">
+        <view class="mode-icon-circle primary-border">
+          <text class="mode-icon">💪</text>
+        </view>
+        <text class="mode-title">肌力训练</text>
+        <text class="mode-subtitle">Strength Training</text>
+      </view>
+    </view>
+
+    <!-- 热身模式 -->
+    <view class="mode-card" bindtap="ToPage2">
+      <view class="mode-bg success-gradient"></view>
+      <view class="mode-content">
+        <view class="mode-icon-circle success-border">
+          <text class="mode-icon">🔥</text>
+        </view>
+        <text class="mode-title">热身模式</text>
+        <text class="mode-subtitle">Warm Up</text>
+      </view>
+    </view>
+
+    <!-- EMG训练 -->
+    <view class="mode-card" bindtap="ToPage4">
+      <view class="mode-bg warning-gradient"></view>
+      <view class="mode-content">
+        <view class="mode-icon-circle warning-border">
+          <text class="mode-icon">⚡</text>
+        </view>
+        <text class="mode-title">EMG训练</text>
+        <text class="mode-subtitle">EMG Training</text>
+      </view>
+    </view>
+
+    <!-- EMG图像 -->
+    <view class="mode-card" bindtap="ToPage3">
+      <view class="mode-bg info-gradient"></view>
+      <view class="mode-content">
+        <view class="mode-icon-circle info-border">
+          <text class="mode-icon">📊</text>
+        </view>
+        <text class="mode-title">EMG图像</text>
+        <text class="mode-subtitle">EMG Graph</text>
+      </view>
+    </view>
+  </view>
+
+  <!-- 智能辅助功能 -->
+  <view class="section-header">
+    <view class="section-line"></view>
+    <view class="section-title-wrapper">
+      <text class="section-icon">🎤</text>
+      <text class="section-title">智能辅助</text>
+    </view>
+    <view class="section-line"></view>
+  </view>
+
+  <view class="feature-card card" bindtap="Tobaidu">
+    <view class="feature-icon-box">
+      <text class="feature-icon">🗣️</text>
+    </view>
+    <view class="feature-info">
+      <text class="feature-title">语音识别</text>
+      <text class="feature-desc">Voice Recognition · 智能语音交互</text>
+    </view>
+    <view class="feature-arrow">›</view>
+  </view>
+
+  <!-- 底部品牌标识 -->
+  <view class="footer-brand">
+    <text class="footer-text">Powered by COJUMP</text>
+    <view class="footer-dots">
+      <view class="dot"></view>
+      <view class="dot"></view>
+      <view class="dot"></view>
+    </view>
+  </view>
+</view>

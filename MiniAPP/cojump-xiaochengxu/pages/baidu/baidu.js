@@ -13,7 +13,8 @@ Page({
      */
     data: {
         token:'',
-        content:''
+        content:'',
+        isRecording: false // 添加录音状态
     },
 
   onLoad(options) {
@@ -74,17 +75,27 @@ Page({
   },
   //开始录音
   touchStart: function () {
+    const that = this;
     wx.authorize({
       scope: 'scope.record',
       success() {
         console.log("录音授权成功");
         recorderManager.start(options);
         recorderManager.onStart(() => {
-          console.log('recorder start')
+          console.log('recorder start');
+          that.setData({ isRecording: true });
+          wx.showToast({
+            title: '开始录音',
+            icon: 'success'
+          });
         });
       },
       fail() {
         console.log("录音失败");
+        wx.showToast({
+          title: '录音授权失败',
+          icon: 'none'
+        });
       },
   })
 },
@@ -92,10 +103,15 @@ Page({
   //停止录音
   touchEnd: function () {
     let that = this
+    that.setData({ isRecording: false });
     recorderManager.stop();
     recorderManager.onStop((res) => {
     console.log('文件路径==', res)
     tempFilePath= res.tempFilePath;
+    wx.showToast({
+      title: '录音已停止',
+      icon: 'success'
+    });
     //获取文件长度
     wx.getFileSystemManager().getFileInfo({
         filePath: tempFilePath,

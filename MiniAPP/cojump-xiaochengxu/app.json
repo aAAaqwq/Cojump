@@ -1,6 +1,8 @@
 {
   "pages": [
+    "pages/login/login",
     "pages/index/index",
+    "pages/userInfo/userInfo",
     "pages/logs/logs",
     "pages/page1/page1",
     "pages/page2/page2",
@@ -13,9 +15,10 @@
   ],
   "window": {
     "backgroundTextStyle": "light",
-    "navigationBarBackgroundColor": "#fff",
-    "navigationBarTitleText": "Weixin",
-    "navigationBarTextStyle": "black"
+    "navigationBarBackgroundColor": "#4a90e2",
+    "navigationBarTitleText": "康复训练",
+    "navigationBarTextStyle": "white",
+    "backgroundColor": "#f8f9fa"
   },
   "permission": {
     "scope.bluetooth": {
