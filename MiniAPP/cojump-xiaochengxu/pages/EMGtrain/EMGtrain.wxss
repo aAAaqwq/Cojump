@@ -1,24 +1,220 @@
 /* pages/EMGtrain/EMGtrain.wxss */
 /* 页面特定样式 */
-.container{
-  padding: 20rpx;
+.container {
+  padding: 42rpx 12rpx 18rpx 12rpx;
+  background: #f5f9ff;
   min-height: 100vh;
-  background-color: #f5f7fa;
-  font-family: 'PingFang SC', 'Helvetica Neue', Arial, sans-serif;
+  font-family: -apple-system, 'PingFang SC', 'Helvetica Neue', Arial;
 }
-.phase-indicator {
-  margin-top: 60rpx;
-  margin-bottom: 40rpx;
+.page-title {
+  text-align: center;
+  font-size: 54rpx;
+  color: #237fff;
+  font-weight: 700;
+  margin: 38rpx auto 54rpx auto;
 }
-
-.btn-group {
+.card {
+  background: #fff;
+  border-radius: 30rpx;
+  box-shadow: 0 8rpx 40rpx rgba(36,110,229,0.08);
+  margin-bottom: 48rpx;
+  padding: 42rpx 30rpx 34rpx 30rpx;
+}
+.card-header {
+  font-size: 30rpx;
+  font-weight: bold;
+  color: #2c7be5;
+  padding-bottom: 14rpx;
+  border-bottom: 2rpx solid #f0f7ff;
+  margin-bottom: 16rpx;
+}
+.card-content {
+  display: flex;
+  flex-direction: column;
+  gap: 20rpx;
+  align-items: center;
+}
+.input-card {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+.input-group {
+  width: 100%;
   display: flex;
   flex-direction: row;
-  gap: 30rpx;
-  margin-top: 40rpx;
+  gap: 32rpx;
+  align-items: center;
+  justify-content: center;
 }
-
-.btn-train, .btn-stop {
+.input, .threshold-input {
+  border: 2rpx solid #2c7be5;
+  border-radius: 14rpx;
+  background: #fafdff;
+  color: #212b36;
+  font-size: 28rpx;
+  padding: 18rpx 22rpx;
+  margin-bottom: 18rpx;
+  outline: none;
+}
+.input:focus, .threshold-input:focus {
+  border-color: #4f9ede;
+  box-shadow: 0 2rpx 12rpx #dcecff;
+}
+.btn, .main-btn {
+  width: 60%;
+  height: 88rpx;
+  border-radius: 44rpx;
+  background: linear-gradient(90deg,#2c7be5,#6dc9ff);
+  color: #fff;
+  font-size: 32rpx;
+  font-weight: 600;
+  margin: 12rpx auto;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 2rpx 8rpx rgba(44,123,229,0.10);
+  border: none;
+  transition: background 0.21s, transform 0.15s;
+}
+.btn:active, .main-btn:active {
+  background: linear-gradient(90deg,#1a56db,#5fb3ff);
+  transform: scale(0.97);
+}
+.main-btn {
+  border: none;
+  height: 104rpx;
+  font-size: 40rpx;
+  font-weight: 600;
+  border-radius: 54rpx;
+  background: linear-gradient(90deg, #237fff 0%, #63eaff 100%);
+  color: #fff;
+  box-shadow: 0 3rpx 24rpx #81befc66;
+  transition: background 0.17s, transform 0.12s;
+  margin: 0 6rpx;
+}
+.main-btn:active {
+  background: linear-gradient(90deg, #1354c2 0%, #39d6fc 100%);
+  transform: scale(0.98);
+}
+.confirm-btn {width: 34%; min-width: 120rpx;}
+.operate-card .btn-row {
+  display: flex;
+  flex-direction: row;
+  gap: 28rpx;
+  justify-content: center;
+  align-items: stretch;
+}
+.flex-btn {
   flex: 1;
+  min-width: 0;
+  padding: 0;
   margin: 0;
+  align-items: center !important;
+  justify-content: center !important;
+  font-size: 40rpx;
+  line-height: 104rpx;
+}
+.start-btn {background: linear-gradient(90deg,#36c48a,#2c7be5);}
+.stop-btn {background: linear-gradient(90deg,#ffb358,#fe6868);}
+.status-card {
+  padding-top: 32rpx;
+  padding-bottom: 22rpx;
+}
+.status-header {
+  font-size: 30rpx;
+  color: #417be2;
+  font-weight: 600;
+  margin-bottom: 10rpx;
+}
+.status-content {
+  display: flex;
+  flex-direction: column;
+  gap: 10rpx;
+  font-size: 28rpx;
+  color: #384969;
+}
+.status-item {
+  font-size: 40rpx;
+  color:#1c3e62;
+  margin-bottom: 18rpx;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  font-weight: 600;
+}
+.status-item.double {
+  flex-direction: row;
+  gap: 44rpx;
+  align-items: center;
+}
+.status-pair {
+  display: flex;
+  flex-direction:column;
+  gap: 5rpx;
+}
+.status-label {
+  font-size: 26rpx;
+  color: #3582bf;
+  font-weight: 500;
+}
+.status-value {
+  font-size: 40rpx;
+  color: #ff9500;
+  padding-left: 6rpx;
+}
+.visual-header {
+  font-size: 28rpx;
+  color: #2c7be5;
+  font-weight: 600;
+  margin-bottom: 12rpx;
+}
+.visual-card {
+  margin-bottom:20rpx;
+  background: #fafdff;
+}
+.visual-title {
+  font-size: 32rpx;
+  color: #217fd7;
+  font-weight: bold;
+  margin-bottom: 18rpx;
+}
+.graph-container {
+  width: 100%;
+  border-radius: 20rpx;
+  background: #eefdff;
+  box-shadow: 0 2rpx 16rpx #f5fafd88;
+  margin-top: 12rpx;
+  padding: 28rpx 12rpx 18rpx 12rpx;
+}
+.graph {
+  display: flex;
+  align-items: flex-end;
+  height: 140rpx;
+  gap: 8rpx;
+  margin: 8rpx 0 5rpx 0;
+}
+.signal-bar {
+  width: 16rpx;
+  min-height: 10rpx;
+  background: #36b0ff;
+  border-radius: 8rpx 8rpx 0 0;
+  transition: height 0.14s;
+}
+.threshold-line {
+  margin-top: 10rpx;
+  border-top: 2rpx dashed #ffae3c;
+  text-align: right;
+  position: relative;
+}
+.threshold-label {
+  font-size: 28rpx;
+  color: #e98c35;
+  position: absolute;
+  right: 0;
+  top: -34rpx;
+}
+@media screen and (max-width: 450px) {
+  .operate-card .btn-row { gap: 12rpx; }
+  .flex-btn { font-size: 34rpx; }
 }

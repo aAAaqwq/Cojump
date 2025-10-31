@@ -164,6 +164,20 @@
   letter-spacing: 1rpx;
 }
 
+.status-row {
+  display: flex;
+  align-items: center;
+  gap: 18rpx;
+  margin-bottom: 8rpx;
+}
+.ble-indicator {
+  width: 22rpx;
+  height: 22rpx;
+  border-radius: 50%;
+  box-shadow: 0 0 8rpx #dbeed8;
+  border: 2rpx solid #bbb;
+}
+
 /* 优化后的蓝牙连接按钮 */
 .btn-connect {
   width: 100%;

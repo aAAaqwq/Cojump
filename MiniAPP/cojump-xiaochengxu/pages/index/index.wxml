@@ -19,8 +19,8 @@
   <!-- 蓝牙连接状态卡片 -->
   <view class="connection-card card">
     <view class="connection-status">
-      <view class="status-indicator">
-        <view class="pulse-dot"></view>
+      <view class="status-row">
+        <view class="ble-indicator" style="background: {{isConnected ? '#15d655':'#eee'}}"></view>
         <text class="status-text">设备状态</text>
       </view>
       <text class="status-label">Device Status</text>
@@ -88,8 +88,8 @@
         <view class="mode-icon-circle info-border">
           <text class="mode-icon">📊</text>
         </view>
-        <text class="mode-title">EMG图像</text>
-        <text class="mode-subtitle">EMG Graph</text>
+        <text class="mode-title">康复历史</text>
+        <text class="mode-subtitle">Rehabilitation History</text>
       </view>
     </view>
   </view>

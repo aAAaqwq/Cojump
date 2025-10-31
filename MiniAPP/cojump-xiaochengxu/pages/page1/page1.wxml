@@ -16,21 +16,21 @@
       <text class="card-header-title">训练模式选择</text>
     </view>
     <view class="card-content">
-      <button class="btn-mode primary" bindtap="mode1">
+      <button class="btn-mode primary {{mode === '1' ? 'mode-selected' : ''}}" bindtap="mode1">
         <text class="btn-mode-icon">1️⃣</text>
         <view class="btn-mode-text">
           <text class="btn-mode-main">模式1</text>
           <text class="btn-mode-sub">Mode 1</text>
         </view>
       </button>
-      <button class="btn-mode success" bindtap="mode2">
+      <button class="btn-mode success {{mode === '2' ? 'mode-selected' : ''}}" bindtap="mode2">
         <text class="btn-mode-icon">2️⃣</text>
         <view class="btn-mode-text">
           <text class="btn-mode-main">模式2</text>
           <text class="btn-mode-sub">Mode 2</text>
         </view>
       </button>
-      <button class="btn-mode info" bindtap="mode3">
+      <button class="btn-mode info {{mode === '3' ? 'mode-selected' : ''}}" bindtap="mode3">
         <text class="btn-mode-icon">3️⃣</text>
         <view class="btn-mode-text">
           <text class="btn-mode-main">模式3</text>

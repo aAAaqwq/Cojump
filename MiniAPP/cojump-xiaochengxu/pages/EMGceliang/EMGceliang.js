@@ -25,6 +25,8 @@ Page({
   },
 
   onLoad() {
+    // wx.setStorageSync('emgThreshold', 360)
+    // console.log("设置成功")
     // 获取全局蓝牙连接信息
     this.setData({
       deviceId: app.globalData.deviceId,
@@ -61,7 +63,8 @@ Page({
 
   // 处理蓝牙接收的数据
  // 处理蓝牙接收的数据
-handleBLEData(data) {
+
+ handleBLEData(data) {
   console.log('原始数据:', data); // 打印完整接收到的数据
   
   // 处理校准阶段提示
@@ -217,6 +220,10 @@ handleBLEData(data) {
           icon: 'none'
         });
       });
+      // 记录阈值
+      wx.setStorageSync('emgThreshold', this.data.recommendAvg)
+      // 数据存储到云端
+      
   },
 
   // 返回上一页

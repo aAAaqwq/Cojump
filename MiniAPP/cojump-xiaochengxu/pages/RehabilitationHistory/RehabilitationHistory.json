@@ -1,0 +1,9 @@
+{
+  "navigationBarTitleText": "个人康复历史记录",
+  "navigationBarBackgroundColor": "#5470c6",
+  "navigationBarTextStyle": "white",
+  "backgroundColor": "#f8f9fa",
+  "usingComponents": {
+    "ec-canvas": "../../ec-canvas/ec-canvas"
+  }
+}

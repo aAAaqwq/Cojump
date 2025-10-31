@@ -88,7 +88,7 @@ Page({
       title: '登录中...',
       mask: true
     })
-  
+
     // 调用云函数进行登录
     wx.cloud.callFunction({
       name: 'wechatLogin',

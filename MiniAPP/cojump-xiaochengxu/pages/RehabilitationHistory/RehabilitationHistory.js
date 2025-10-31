@@ -8,8 +8,8 @@ Page({
   
   onShareAppMessage: function (res) {
     return {
-      title: 'EMG阈值历史趋势图',
-      path: '/pages/tuxiang/tuxiang',
+      title: '个人康复历史记录',
+      path: '/pages/RehabilitationHistory/RehabilitationHistory',
       success: function () { },
       fail: function () { }
     }

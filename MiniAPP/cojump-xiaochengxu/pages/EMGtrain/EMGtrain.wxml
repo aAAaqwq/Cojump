@@ -1,66 +1,40 @@
-<view class="container" >
-  <view class="header" >
-    <text class="title">主动训练</text>
-    <button class="back-btn" bindtap="ToPage1"  style="width: 247rpx; display: block; box-sizing: border-box; left: 475rpx; top: 29rpx">返回</button>
-  </view>
-  
-  <view class="card">
-    <view class="card-header">阈值设置</view>
-    <view class="card-content">
-      <input 
-        type="number" 
-        placeholder="输入触发阈值" 
-        value="{{threshold}}" 
-        bindinput="onThresholdInput"
-        class="input"
-      />
-      <button class="btn primary" bindtap="start">确定</button>
+<view class="container">
+  <view class="page-title">主动训练</view>
+  <view class="card input-card">
+    <view class="input-group">
+      <input type="number" placeholder="输入触发阈值" value="{{emgThreshold}}" bindinput="onThresholdInput" class="threshold-input" />
+      <button class="main-btn confirm-btn" bindtap="start">确定</button>
     </view>
   </view>
-  
-  <view class="card">
-    <view class="card-header">训练控制</view>
-    <view class="card-content">
-      <button 
-        class="btn primary" 
-        bindtap="emgmode" 
-        
-      >
-        {{isTraining ? '训练中...' : '开始训练'}}
-      </button>
-      <button 
-        class="btn danger" 
-        bindtap="bluetoothmode" 
-        
-      >
-        暂停训练
-      </button>
+  <view class="card operate-card">
+    <view class="btn-row">
+      <button class="main-btn start-btn flex-btn" bindtap="emgmode">{{isTraining ? '训练中...' : '开始训练'}}</button>
+      <button class="main-btn stop-btn flex-btn" bindtap="bluetoothmode">暂停训练</button>
     </view>
   </view>
-  
-  <view class="status-card" style="position: relative; left: 2rpx; top: 167rpx">
-    <view class="status-header">训练状态</view>
-    <view class="status-content">
-      <text>当前状态: {{statusMessage}}</text>
-      <text>触发次数: {{triggerCount}}次</text>
-      <text>当前信号强度: {{currentSignal.toFixed(1)}}</text>
+  <view class="card status-card">
+    <view class="status-item">
+      <text class="status-label">当前状态</text>
+      <text class="status-value">{{statusMessage}}</text>
+    </view>
+    <view class="status-item double">
+      <view class="status-pair">
+        <text class="status-label">触发次数</text>
+        <text class="status-value">{{triggerCount}}次</text>
+      </view>
+      <view class="status-pair">
+        <text class="status-label">信号强度</text>
+        <text class="status-value">{{currentSignal.toFixed(1)}}</text>
+      </view>
     </view>
   </view>
-  
-  <view class="visualization">
-    <view class="visual-header" style="position: relative; left: 0rpx; top: 145rpx">肌电信号可视化</view>
+  <view class="card visual-card">
+    <view class="visual-title">肌电信号可视化</view>
     <view class="graph-container">
-      <view class="graph" style="position: relative; left: 0rpx; top: 120rpx">
-        <view 
-          class="signal-bar" 
-          wx:for="{{signalHistory}}"
-          wx:key="index"
-          style="height: {{item * 0.5}}px; background-color: {{item > threshold ? '#ff6b6b' : '#4a90e2'}}"
-        ></view>
+      <view class="graph">
+        <view class="signal-bar" wx:for="{{signalHistory}}" wx:key="index" style="height: {{item * 0.6}}px; background-color: {{item > threshold ? '#ff7722' : '#36b0ff'}}"></view>
       </view>
-      <view class="threshold-line" style="bottom: {{threshold * 0.5}}px">
-        <text class="threshold-label">阈值: {{threshold}}</text>
-      </view>
+      <view class="threshold-line"><text class="threshold-label">阈值: {{threshold}}</text></view>
     </view>
   </view>
 </view>

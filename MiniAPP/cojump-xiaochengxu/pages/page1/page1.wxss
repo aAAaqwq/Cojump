@@ -118,6 +118,38 @@
   background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
 }
 
+/* 选中模式的高亮边框样式 */
+.btn-mode.mode-selected {
+  border: 4rpx solid #15d655;
+  box-shadow: 0 0 20rpx rgba(21, 214, 85, 0.5), 0 8rpx 24rpx rgba(0, 0, 0, 0.15);
+  transform: scale(1.02);
+  position: relative;
+}
+
+.btn-mode.mode-selected::before {
+  content: '✓';
+  position: absolute;
+  top: 8rpx;
+  right: 12rpx;
+  font-size: 32rpx;
+  color: #15d655;
+  background: rgba(255, 255, 255, 0.95);
+  width: 44rpx;
+  height: 44rpx;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: bold;
+  box-shadow: 0 2rpx 8rpx rgba(21, 214, 85, 0.3);
+  z-index: 10;
+}
+
+.btn-mode.mode-selected:active {
+  transform: scale(0.98);
+  box-shadow: 0 0 15rpx rgba(21, 214, 85, 0.4), 0 4rpx 12rpx rgba(0, 0, 0, 0.1);
+}
+
 .btn-mode-icon {
   font-size: 40rpx;
   filter: drop-shadow(0 2rpx 4rpx rgba(0, 0, 0, 0.1));

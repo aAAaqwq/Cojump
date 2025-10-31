@@ -27,7 +27,8 @@ Page({
     timeInSecs: 0,
     token:'',
     content:'',
-    userInfo: null // 用户信息
+    userInfo: null, // 用户信息
+    isConnected: false,
   },
 
   onLoad() {
@@ -39,6 +40,7 @@ Page({
   onShow() {
     // 页面显示时重新加载用户信息
     this.loadUserInfo();
+    this.setData({ isConnected });
   },
 
   // 加载用户信息
@@ -129,7 +131,9 @@ Page({
         this.bleGetDeviceServices(deviceId)
       }
     })
+    var that = this;
     wx.onBLEConnectionStateChange(function(res) {
+      that.setData({isConnected:!!res.connected});
       if (res.connected) {
         // 连接成功
         isConnected = true;
@@ -306,9 +310,9 @@ Page({
 
   ToPage3: function() {
     wx.navigateTo({
-      url: '/pages/tuxiang/tuxiang'
+      url: '/pages/RehabilitationHistory/RehabilitationHistory'
     });
-  console.log('EMG图像')
+  console.log('个人康复历史记录')
   },
 
   ToPage4: function() {

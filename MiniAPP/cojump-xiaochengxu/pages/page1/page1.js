@@ -18,6 +18,7 @@ Page({
     timer: null, // 定时器
     timeInSecs: 0,
     timerStatus:"pause",
+    mode:'1',
   },
   
   stringToBytes(str) {
@@ -71,6 +72,12 @@ Page({
     })
   },
   mode1(){
+    if (this.data.mode == '1') {
+      return
+    }
+    this.setData({
+      mode:'1',
+    })
     var buffer = this.stringToBytes("mode1")
     console.log('模式1')
     wx.writeBLECharacteristicValue({
@@ -81,6 +88,12 @@ Page({
     })
   },
   mode2(){
+    if (this.data.mode == '2') {
+      return
+    }
+    this.setData({
+      mode:'2',
+    })
     var buffer = this.stringToBytes("mode2")
     console.log('模式2')
     wx.writeBLECharacteristicValue({
@@ -91,6 +104,12 @@ Page({
     })
   },
   mode3(){
+    if (this.data.mode == '3') {
+      return
+    }
+    this.setData({
+      mode:'3',
+    })
     var buffer = this.stringToBytes("mode3")
     console.log('模式3')
     wx.writeBLECharacteristicValue({
@@ -137,11 +156,25 @@ Page({
     const secs = seconds % 60;
     return `${minutes.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
   },
+  // 判断是否设置模式和时间
+  checkModeAndTime: function() {
+    console.log("模式：",this.data.mode,"时间：",this.data.timeInSecs)
+    if (this.data.timeInSecs == 0||this.data.mode == '') {
+      return false
+    }
+    return true
+  },
   start: function() {
+    if (!this.checkModeAndTime()) {
+      return
+    }
     this.startTimer();
     this.starting();
   },
   pause: function() {
+    if (!this.checkModeAndTime()) {
+      return
+    }
     this.pauseTimer();
     this.pausing();
   },
@@ -151,7 +184,6 @@ Page({
     that.setData({
       inputTime: '', // 清空输入框
     });
-
     if (that.data.timerStatus == "start") {
       return;
     }
@@ -191,8 +223,9 @@ Page({
     }
     this.pausing()
   },
-  // 页面卸载时清除定时器
+  // 页面卸载时暂停训练,清除定时器
   onUnload: function() {
+    this.pause()
     if (this.data.timer) {
       clearInterval(this.data.timer);
     }

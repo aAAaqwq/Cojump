@@ -12,7 +12,7 @@ const db = cloud.database()
  * @param {object} userInfo - 微信用户信息
  */
 exports.main = async (event, context) => {
-  const { openId, userInfo } = event
+  let { openId, userInfo } = event
   const wxContext = cloud.getWXContext()
   
   // 获取有效的openId
@@ -27,10 +27,17 @@ exports.main = async (event, context) => {
     }
   }
   
-  // 默认名称 微信用户+openId后4位（避免暴露完整openId）
-  if (!userInfo.nickName||userInfo.nickName==''||userInfo.nickName=='微信用户') {
-    userInfo.nickName = '微信用户' + actualOpenId.slice(-8)
+  // 默认名称 微信用户+openId后4位（避免暴露完整openId）+随机头像1-4
+  if (!userInfo||!userInfo.nickName||!userInfo.avatarUrl||userInfo.nickName==''||userInfo.avatarUrl==''
+    ||userInfo.nickName=='undefined'||userInfo.avatarUrl=='undefined') {
+    const defaultUserInfo = {
+      nickName: '微信用户' + actualOpenId.slice(-8),
+      avatarUrl: '/image/default'+Math.floor(Math.random()*4+1)+'.png'
+    }
+    userInfo = defaultUserInfo
+    console.log('使用默认userInfo:',userInfo,defaultUserInfo)
   }
+
   
   try {
     // 1. 查找用户是否存在
@@ -47,7 +54,7 @@ exports.main = async (event, context) => {
         data: {
           openId: actualOpenId,
           nickName: userInfo.nickName,
-          avatarUrl: userInfo.avatarUrl || '',
+          avatarUrl: userInfo.avatarUrl,
           createTime: currentTime,
           lastLoginTime: currentTime,
           lastUpdateTime: currentTime
@@ -63,8 +70,8 @@ exports.main = async (event, context) => {
       
       await db.collection('users').doc(user._id).update({
         data: {
-          nickName: userInfo.nickName || user.nickName,
-          avatarUrl: userInfo.avatarUrl || user.avatarUrl,
+          nickName: userInfo.nickName,
+          avatarUrl: userInfo.avatarUrl,
           lastLoginTime: currentTime,
           lastUpdateTime: currentTime
         }

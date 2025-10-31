@@ -3,7 +3,7 @@ const app = getApp();
 
 Page({
   data: {
-    threshold: 30,
+    emgThreshold: 30,
     isTraining: false,
     statusMessage: '等待开始',
     triggerCount: 0,
@@ -11,6 +11,13 @@ Page({
   },
   
   onLoad() {
+    const tempThreshold=wx.getStorageSync("emgThreshold")
+    if (tempThreshold){
+      this.setData({
+        emgThreshold:tempThreshold
+      }
+      )
+    }
     // 设置数据接收回调
     app.globalData.onDataReceived = this.handleBLEData.bind(this);
   },
@@ -37,12 +44,12 @@ Page({
   },
   
   onThresholdInput(e) {
-    this.setData({ threshold: e.detail.value });
+    this.setData({ emgThreshold: e.detail.value });
   },
   
   setThreshold() {
     // 获取输入的阈值并转换为数值
-    const threshold = parseFloat(this.data.threshold);
+    const threshold = parseFloat(this.data.emgThreshold);
     
     if (!isNaN(threshold)) {
         // 构建T45格式的字符串
@@ -86,7 +93,7 @@ storeEMGData(){
     data: {
       deviceId: app.globalData.deviceId,
       openId: app.globalData.openId,
-      emgThreshold: this.data.threshold,
+      emgThreshold: this.data.emgThreshold,
       emgRaw:[],
       recordTime: this.formatDate(new Date()),
     }
@@ -131,10 +138,14 @@ start() {
       value: buffer,
     })
     wx.showToast({
-      title: '切换至emg模式',
+      title: '已切换至EMG模式',
       icon: 'success',
-      duration: 2000 // 显示时间，单位ms
+      duration: 1600
     });
+    this.setData({
+      statusMessage: '已切换至EMG模式',
+      isTraining: true
+    })
   },
   bluetoothmode(){
     var buffer = this.stringToBytes("bluetoothmode")
