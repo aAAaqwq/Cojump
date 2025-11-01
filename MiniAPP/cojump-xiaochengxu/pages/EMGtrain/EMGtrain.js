@@ -156,6 +156,10 @@ start() {
       characteristicId:app.globalData.characteristicId,
       value: buffer,
     })
+    this.setData({
+      statusMessage: '已切换回蓝牙模式',
+      isTraining: false
+    })
     wx.showToast({
       title: '切换回蓝牙模式',
       icon: 'success',

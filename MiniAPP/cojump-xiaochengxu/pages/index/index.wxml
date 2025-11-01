@@ -104,7 +104,7 @@
     <view class="section-line"></view>
   </view>
 
-  <view class="feature-card card" bindtap="Tobaidu">
+  <view class="feature-card card" bindtap="ToVoiceRecognition">
     <view class="feature-icon-box">
       <text class="feature-icon">🗣️</text>
     </view>

@@ -68,7 +68,7 @@
           </view>
         </button>
 
-        <button class="voice-btn recognize-btn" bindtap="shibie">
+        <!-- <button class="voice-btn recognize-btn" bindtap="shibie">
           <view class="btn-inner">
             <text class="btn-inner-icon">🔍</text>
             <view class="btn-inner-text">
@@ -76,7 +76,7 @@
               <text class="btn-inner-sub">Recognize</text>
             </view>
           </view>
-        </button>
+        </button> -->
       </view>
     </view>
   </view>

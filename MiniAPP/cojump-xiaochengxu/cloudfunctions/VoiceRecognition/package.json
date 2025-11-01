@@ -1,0 +1,16 @@
+{
+  "name": "VoiceRecognition",
+  "version": "1.0.0",
+  "description": "语音识别云函数 - 将录音文件转为文字",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "wx-server-sdk": "~3.0.1",
+    "tencentcloud-sdk-nodejs": "^4.0.600"
+  }
+}
+

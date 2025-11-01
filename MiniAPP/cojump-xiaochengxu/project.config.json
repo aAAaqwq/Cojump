@@ -1,6 +1,6 @@
 {
   "description": "项目配置文件",
-  "cloudfunctionRoot":"cloudfunctions",
+  "cloudfunctionRoot": "cloudfunctions",
   "setting": {
     "urlCheck": true,
     "es6": true,
@@ -40,7 +40,7 @@
     "localPlugins": false,
     "disableUseStrict": false,
     "useCompilerPlugins": false,
-    "condition": false,
+    "condition": true,
     "swc": false,
     "disableSWC": true
   },
@@ -62,5 +62,8 @@
   },
   "appid": "wx927cb6d28d750ab3",
   "projectname": "HAND_Test",
-  "simulatorPluginLibVersion": {}
+  "simulatorPluginLibVersion": {
+    "wxext14566970e7e9f62": "2.27.3"
+  },
+  "projectArchitecture": "multiPlatform"
 }

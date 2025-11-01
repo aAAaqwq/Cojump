@@ -67,7 +67,7 @@
 
       <!-- 倒计时显示 -->
       <view class="countdown-display" wx:if="{{timeStr}}">
-        <view class="countdown-label">当前训练时长</view>
+        <view class="countdown-label">当前剩余训练时长</view>
         <view class="countdown-value">{{timeStr}}</view>
         <view class="countdown-hint">Duration</view>
       </view>

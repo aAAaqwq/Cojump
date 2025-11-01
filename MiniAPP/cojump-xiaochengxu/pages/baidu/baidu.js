@@ -47,7 +47,8 @@ Page({
 // 获取token
   getToken:function(){
     let that=this;
-    let ApiKey='hILGfxaXbxQRhGI2pBQuFy61';//你自己的apikey
+    // 写在代码里不怕被别人看到吗？QWQ
+    let ApiKey='hILGfxaXbxQRhGI2pBQuFy61';//你自己的apikey 
     let SecretKey='JnTVvZf2nfbHsNqYTnP8Z4D7OmkiVwXs';//你自己的SecretKey
     const url = 'https://aip.baidubce.com/oauth/2.0/token?grant_type=client_credentials&client_id='+ApiKey+'&client_secret='+SecretKey
     wx.request({
@@ -161,10 +162,12 @@ Page({
             that.setData({
                content:res.data.result
             })
-            if(res.data.result.toString().indexOf("蓝牙")>=0){
+            // if(res.data.result.toString().indexOf("蓝牙")>=0){
               
-               this.bleInit();
-            }
+            //    this.bleInit();
+            // }
+
+            
         },
         fail: function (res) {
           console.log("失败",res);
@@ -173,4 +176,5 @@ Page({
     }
   })     
  }
+ 
 })

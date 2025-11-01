@@ -10,12 +10,12 @@
   <view class="card progress-area">
     <view class="progress-header">测量进度</view>
     <view wx:if="{{currentStep === 1}}" class="progress-step">
-      <text class="step-title">步骤 1/2 放松测量</text>
+      <text class="step-title">步骤 1/2 放松测量，请放松手部</text>
       <view class="progress-bar"><view class="progress-fill" style="width: {{(10-relaxTime)*10}}%"></view></view>
       <text class="highlight">剩余时间: {{relaxTime}}秒</text>
     </view>
     <view wx:if="{{currentStep === 2}}" class="progress-step">
-      <text class="step-title">步骤 2/2 收缩测量</text>
+      <text class="step-title">步骤 2/2 舒张测量，请用力张开手部</text>
       <view class="progress-bar"><view class="progress-fill" style="width: {{(5-contractTime)*20}}%"></view></view>
       <text class="highlight">剩余时间: {{contractTime}}秒</text>
     </view>

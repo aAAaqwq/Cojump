@@ -223,7 +223,31 @@ Page({
       // 记录阈值
       wx.setStorageSync('emgThreshold', this.data.recommendAvg)
       // 数据存储到云端
-      
+      this.storeEMGData()
+  },
+  storeEMGData(){
+    wx.cloud.callFunction({
+      name: 'setEMG',
+      data: {
+        deviceId: app.globalData.deviceId,
+        openId: app.globalData.openId,
+        emgThreshold: this.data.recommendAvg,
+        emgRaw:[],
+        recordTime: this.formatDate(new Date()),
+      }
+    }).then(res => {
+      console.log('数据存储成功:', res);
+      wx.showToast({
+        title: '数据存储成功',
+        icon: 'success'
+      });
+    }).catch(err => {
+      console.error('数据存储失败:', err);
+      wx.showToast({
+        title: '数据存储失败',
+        icon: 'none'
+      });
+    });
   },
 
   // 返回上一页

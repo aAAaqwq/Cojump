@@ -301,9 +301,9 @@ Page({
   console.log('跳转至EMG模式')  
   },
 
-  Tobaidu: function() {
+  ToVoiceRecognition: function() {
     wx.navigateTo({
-      url: '/pages/baidu/baidu'
+      url: '/pages/VoiceRecognition/VoiceRecognition'
     });
   console.log('语音识别')
   },
